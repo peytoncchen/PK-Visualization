@@ -1,0 +1,21 @@
+body {
+    margin:10px 150px;
+    padding:50px;
+    overflow:scroll;
+    font:14px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color:#000000;
+    margin:0 0 20px;
+    text-align:center;
+}
+
+h1 {
+    font-size:38px;
+}
+
+h1, h2, h3 {
+    line-height:1.1;
+}
+
