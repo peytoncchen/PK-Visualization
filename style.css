@@ -15,7 +15,38 @@ h1 {
     font-size:38px;
 }
 
+h2 {
+    font-size:20px;
+}
+
 h1, h2, h3 {
     line-height:1.1;
 }
+
+hr.rounded {
+    border-top:8px solid #000000;
+    border-radius:5px;
+}
+
+form {
+    display:inline-block
+}
+
+table {
+    align-items:center;
+	display:inline-block;
+	align-content:center;
+	
+}
+
+th, td {
+    border-bottom:1px solid #dcdcdc;
+    text-align:left;
+    padding:5px;
+}
+
+select option {
+    font-size: 14px;
+}
+
 
