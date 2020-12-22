@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
-<body onload="gen_k_fields()">
+<body>
     <h1>Pharmacokinetic Modeling and Visualization Tool</h1>
     <h2 style="text-align: left;">Background</h2>
     <p style="padding-bottom: 10px;"> Fill in some background as to what this thing does.
@@ -15,7 +15,7 @@
     <hr class="solid">
     <h2 style="padding-top: 10px;">Pharmacokinetic Data Modeling Calculator</h2>
     
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/8.1.0/math.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/8.1.0/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
     <script src="https://unpkg.com/optimization-js@latest/dist/optimization.js"></script>
@@ -50,10 +50,11 @@
                     </tr>
                     <tr id="row3">
                         <td>
-                            <label for="timerange">Time Range (minutes)</label>
+                            <label for="timerange">Time Range and Units</label>
                         </td>
                         <td>
                             <input type="number" id="timerange" value="250" style="width: 70px">
+                            <input id="time-units" value="minutes" style="width: 70px">
                         </td>
                     </tr>
                     <tr id="row4">
@@ -70,25 +71,33 @@
                         </td>
                         <td>
                             <select id="massconc" onchange="gen_conc_field()">
-                                <option value="mass">Mass</option>
-                                <option value="conc">Concentration</option>
+                                <option value="Mass">Mass</option>
+                                <option value="Concentration">Concentration</option>
                             </select>
                         </td>
                     </tr>
                     <tr id="buttonrow">
                         <td>
-                            <button type="button" onclick="ode_and_graph()">Calc + Graph</button>
+                            <button type="button" onclick="ode()">Calculate</button>
                         </td>
                         <td>
+                            <button type="button" onclick="graph()">Graph</button>
                             <button type="button" onclick="test()">Test</button>
                         </td>
                     </tr>
                 </table>
             </form>
         </div>
-        <div style="width: 1000px; height: 500px">
-            <canvas id="my_graph"></canvas>
+        <div style="width: 725px; height: 500px; padding-left: 15px;">
+            <canvas  id="my_graph"></canvas>
+            <div style="align-items: center;">
+                <p id="output"></p>
+            </div>
         </div>
+    </div>
+    <div>
+        <hr class="solid">
+        <h2 style="padding-top: 10px;">k-value Calculator</h2>
     </div>
 
 <script>
@@ -96,7 +105,7 @@
         var num_fields = parseInt(document.getElementById("comps").value);
         var table = document.getElementById("kval_table");
         // reset innerHTML
-        table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>k-value</th>\n<th>Initial value</th></tr>";
+        table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
         for (i = 0; i < num_fields; i++) {
             var row = document.createElement("tr");
             var cell_label = document.createElement("td");
@@ -110,33 +119,35 @@
             name_field.setAttribute("style", "width: 100px");
             cell_name.appendChild(name_field);
 
-            var cell_k = document.createElement("td");
-            var k_field = document.createElement("input");
-            k_field.setAttribute("id", "k_val" + (i + 1))
-            k_field.setAttribute("style", "width: 70px")
-            k_field.setAttribute("type", "number");
-            cell_k.appendChild(k_field);
-
             var cell_ival = document.createElement("td");
             var ival_field = document.createElement("input");
             ival_field.setAttribute("id", "i_val" + (i + 1))
             ival_field.setAttribute("style", "width: 70px")
             ival_field.setAttribute("type", "number");
             cell_ival.appendChild(ival_field);
+
+            var cell_k = document.createElement("td");
+            var k_field = document.createElement("input");
+            k_field.setAttribute("id", "k_val" + (i + 1))
+            k_field.setAttribute("style", "width: 70px")
+            k_field.setAttribute("type", "number");
+            cell_k.appendChild(k_field);
             
             row.appendChild(cell_label);
             row.appendChild(cell_name);
-            row.appendChild(cell_k);
             row.appendChild(cell_ival);
+            row.appendChild(cell_k);
 
             table.appendChild(row);
         }
+        if (document.getElementById("massconc").value == "Concentration") {
+                document.getElementById("input_table").deleteRow(5)
+                gen_conc_field();
+        }
     }
-</script>
 
-<script>
     function gen_conc_field() {
-        if (document.getElementById("massconc").value == "conc") {
+        if (document.getElementById("massconc").value == "Concentration") {
             var row = document.getElementById("input_table").insertRow(5);
 
             var cell_label = document.createElement("td");
@@ -149,8 +160,19 @@
             var input_field = document.createElement("input");
             input_field.setAttribute("id", "a_const");
             input_field.setAttribute("style", "width: 70px")
-            input_field.setAttribute("type", "number");
+
+            var select_comp = document.createElement("select");
+            select_comp.setAttribute("id", "select_comp");
+            var num_fields = parseInt(document.getElementById("comps").value);
+            for (i= 0; i < num_fields; i++) {
+                var option = document.createElement("option");
+                option.innerHTML = "Compartment " + (i + 1);
+                option.setAttribute("value", (i + 1).toString());
+                select_comp.appendChild(option);
+            }
+
             cell_input.appendChild(input_field);
+            cell_input.appendChild(select_comp);
             row.appendChild(cell_input);
         } else {
             document.getElementById("input_table").deleteRow(5)
@@ -222,6 +244,8 @@
 </script>
 
 <script>
+    var integrator;
+
     function parse_k_table() {
         var k_array = [];
         var init_array = [];
@@ -236,11 +260,20 @@
 
     function parse_time_nsteps() {
         var time = parseFloat(document.getElementById("timerange").value);
+        var t_units = document.getElementById("time-units").value
         var nsteps = parseInt(document.getElementById("nsteps").value);
-        return [time, nsteps];
+        return [time, nsteps, t_units];
     }
 
-    function ode_and_graph() {
+    function process_out(array, time, t_units) {
+        var out_str = "<b><u>Final Results at " + time + " " + t_units + "</u></b><br>";
+        for (i = 0; i < array.length; i++) {
+            out_str += ("Compartment " + (i + 1) + ": " + array[i].toPrecision(3) + "<br>");
+        }
+        return out_str;
+    }
+
+    function ode() {
         var ktable = parse_k_table();
         var time_nsteps = parse_time_nsteps();
         var num_fields = parseInt(document.getElementById("comps").value);
@@ -251,25 +284,174 @@
         var nsteps = time_nsteps[1];
         var dt = time/nsteps;
 
+        var a_const = 1;
+        var select_index = -1;
+        if (document.getElementById("massconc") == "Concentration") {
+            a_const = math.evaluate(document.getElementById("a_const").value);
+            select_index = parseInt(document.getElementById("select_comp").value);
+        }
+
         var dydt = function(dydt, y, t) {
             for (i = 0; i < num_fields; i++) {
-                if (i == 0) {
+                if (i == 0 && i + 1 == select_index) {
+                    dydt[0] = k[0] * -y[0] / (a_const);
+                } else if (i + 1 == select_index) {
+                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (a_const); 
+                } else if (i == 0) {
                     dydt[0] = k[0] * -y[0];
-                } else if (i + 1 == num_fields) {
-                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (.142*.3); // Add animal constant support
                 } else {
                     dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1];
                 }
             }
         }
 
-        var integrator = new Integrator(y0, dydt, 0, dt);
+        integrator = new Integrator(y0, dydt, 0, dt);
         integrator.steps(nsteps);
+        document.getElementById("output").innerHTML = process_out(integrator.y, time_nsteps[0], time_nsteps[2]);
         console.log(integrator);
         console.log(integrator.y);
         console.log(integrator.y_collection);
 
+        window.chart.options.scales.xAxes[0].scaleLabel.labelString = "Time " + "(" + document.getElementById("time-units").value + ")";
+        window.chart.options.scales.yAxes[0].scaleLabel.labelString = document.getElementById("massconc").value;
+        window.chart.update();
+
     }
+    
+    
+    var colors = ["#70B9B5", "#EB8138", "#6E6CC0", "#E64445", "#8E99A0", "#38A9C7"]
+    var chart_data = {
+        datasets: [
+            {
+                id: "comp_1_data",
+                label: "Compartment 1",
+                borderColor: colors[0],
+                showLine: true,
+                data: [],
+                pointRadius: 0,
+            },
+            {
+                id: "comp_2_data",
+                label: "Compartment 2",
+                borderColor: colors[1],
+                showLine: true,
+                data: [],
+                pointRadius: 0,
+            },
+            {
+                id: "comp_3_data",
+                label: "Compartment 3",
+                borderColor: colors[2],
+                showLine: true,
+                data: [],
+                pointRadius: 0,
+            },
+            {
+                id: "comp_4_data",
+                label: "Compartment 4",
+                borderColor: colors[3],
+                showLine: true,
+                data: [],
+                pointRadius: 0,
+            },
+            {
+                id: "comp_5_data",
+                label: "Compartment 5",
+                borderColor: colors[4],
+                showLine: true,
+                data: [],
+                pointRadius: 0,
+            },
+            {
+                id: "comp_6_data",
+                label: "Compartment 6",
+                borderColor: colors[5],
+                showLine: true,
+                data: [],
+                pointRadius: 0,
+            },
+        ]
+
+    };
+
+    function shorten_out(y) {
+        const len = y.length;
+        var x = numeric.linspace(0, parseFloat(document.getElementById("timerange").value), 
+            parseInt(document.getElementById("nsteps").value));
+        var shortened_x = [];
+        var shortened_y = [];
+        for (i = 0; i < len; i++) {
+            if (i % 100 == 0) {
+                shortened_x.push(x[i].toPrecision(3));
+                shortened_y.push(y[i].toPrecision(3));
+            }
+        }
+        return [shortened_x, shortened_y];
+    }
+
+    function graph() {
+        var shortened_arr = shorten_out(integrator.y_collection);
+        console.log(shortened_arr);
+    }
+    
+    window.onload = function() {
+        var ctx = document.getElementById("my_graph").getContext("2d");
+        window.chart = new Chart(ctx, {
+            type: "scatter",
+            data: chart_data,
+            options: {
+                responsive: true,
+                title: {
+                    display: false,
+                    text: "Compartment Model Graph"
+                },
+                legend: {
+                    display: true,
+                    labels: {
+                        filter: function (item, chart) {
+                            return chart_data.datasets[item.datasetIndex].data.length; // if there is no data length -> 0
+                        }
+                    },
+                },
+                scales: {
+                    xAxes: [{
+                        position: "bottom",
+                        scaleLabel: {
+                            display: true,
+                            labelString: "Time " + "(" + document.getElementById("time-units").value + ")",
+                        },
+                        gridLines: {
+                            drawOnChartArea: false,
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        position: "left",
+                        scaleLabel: {
+                            display: true,
+                            labelString: document.getElementById("massconc").value,
+                        },
+                        gridLines: {
+                            drawOnChartArea: false,
+                        },
+                    }]
+                }, 
+                elements: {
+                    line: {
+                        fill: false,
+                    },
+                    gridLines: {
+                        drawOnChartArea: false,
+                    },
+                }
+
+            },
+        })
+        gen_k_fields(); // Default value is 1
+    };
+    
+
+
 </script>
 
 <script>
@@ -281,12 +463,13 @@
         var n = 100000;
         var dt = t_end/n;
         
-        var k = [200, 0.60891022, 0.06007484];
+        var k = [100, 0.6, 0.06]
+        //var k = [200, 0.60891022, 0.06007484];
 
         var dydt = function(dydt, y, t) {
             dydt[0] = k[0] * -y[0];
             dydt[1] = k[1] * -y[1] + k[0] * y[0];
-            dydt[2] = k[2] * -y[2] + k[1] * y[1] / (.142*.3);  
+            dydt[2] = k[2] * -y[2] + k[1] * y[1]; /// (.142*.3);  
         }
 
         var integrator = new Integrator(y0, dydt, t0, dt);
