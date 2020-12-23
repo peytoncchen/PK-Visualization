@@ -78,10 +78,10 @@
                     </tr>
                     <tr id="buttonrow">
                         <td>
-                            <button type="button" onclick="ode()">Calculate</button>
+                            <button type="button" onclick="ode()">Calculate & Graph</button>
                         </td>
                         <td>
-                            <button type="button" onclick="graph()">Graph</button>
+                            <button type="button" onclick="download()">Download</button>
                             <button type="button" onclick="test()">Test</button>
                         </td>
                     </tr>
@@ -159,25 +159,40 @@
             var cell_input = document.createElement("td");
             var input_field = document.createElement("input");
             input_field.setAttribute("id", "a_const");
-            input_field.setAttribute("style", "width: 70px")
-
-            var select_comp = document.createElement("select");
-            select_comp.setAttribute("id", "select_comp");
-            var num_fields = parseInt(document.getElementById("comps").value);
-            for (i= 0; i < num_fields; i++) {
-                var option = document.createElement("option");
-                option.innerHTML = "Compartment " + (i + 1);
-                option.setAttribute("value", (i + 1).toString());
-                select_comp.appendChild(option);
-            }
-
+            input_field.setAttribute("style", "padding-right: 50px;");
+            input_field.setAttribute("style", "width: 70px");
             cell_input.appendChild(input_field);
-            cell_input.appendChild(select_comp);
+
+            var form = document.createElement("form");
+            var num_fields = parseInt(document.getElementById("comps").value);
+            for (i = 0; i < num_fields; i++) {
+                if (i == 0) {
+                    var brk1 = document.createElement("br");
+                    cell_input.appendChild(brk1);
+                }
+                var option = document.createElement("input");
+                option.setAttribute("type", "checkbox")
+                option.setAttribute("class", "checks");
+                option.setAttribute("value", (i + 1).toString());
+                option.setAttribute("style", "padding: 5px;");
+                form.appendChild(option);
+
+                var opt_lbl = document.createElement("label");
+                opt_lbl.setAttribute("style", "font-size: 12px; padding: 5px;");
+                opt_lbl.innerHTML = "Compartment " + (i + 1);
+                form.appendChild(opt_lbl);
+                if (num_fields > 3 && i == 2) {
+                    var brk2 = document.createElement("br");
+                    form.appendChild(brk2);
+                }
+            }
+            cell_input.appendChild(form);
             row.appendChild(cell_input);
         } else {
             document.getElementById("input_table").deleteRow(5)
         }
     }
+
 </script>
 
 <script>
@@ -265,6 +280,19 @@
         return [time, nsteps, t_units];
     }
 
+    function parse_checks(num_fields) {
+        var checks = document.getElementsByClassName("checks");
+        console.log(checks);
+        var select_indexes = [];
+
+        for (i = 0; i < num_fields; i++) {
+            if (checks[i].checked) {
+                select_indexes.push(parseInt(checks[i].value));
+            }
+        }
+        return select_indexes;
+    }
+
     function process_out(array, time, t_units) {
         var out_str = "<b><u>Final Results at " + time + " " + t_units + "</u></b><br>";
         for (i = 0; i < array.length; i++) {
@@ -272,52 +300,6 @@
         }
         return out_str;
     }
-
-    function ode() {
-        var ktable = parse_k_table();
-        var time_nsteps = parse_time_nsteps();
-        var num_fields = parseInt(document.getElementById("comps").value);
-
-        var y0 = ktable[1];
-        var k = ktable[0];
-        var time = time_nsteps[0];
-        var nsteps = time_nsteps[1];
-        var dt = time/nsteps;
-
-        var a_const = 1;
-        var select_index = -1;
-        if (document.getElementById("massconc") == "Concentration") {
-            a_const = math.evaluate(document.getElementById("a_const").value);
-            select_index = parseInt(document.getElementById("select_comp").value);
-        }
-
-        var dydt = function(dydt, y, t) {
-            for (i = 0; i < num_fields; i++) {
-                if (i == 0 && i + 1 == select_index) {
-                    dydt[0] = k[0] * -y[0] / (a_const);
-                } else if (i + 1 == select_index) {
-                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (a_const); 
-                } else if (i == 0) {
-                    dydt[0] = k[0] * -y[0];
-                } else {
-                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1];
-                }
-            }
-        }
-
-        integrator = new Integrator(y0, dydt, 0, dt);
-        integrator.steps(nsteps);
-        document.getElementById("output").innerHTML = process_out(integrator.y, time_nsteps[0], time_nsteps[2]);
-        console.log(integrator);
-        console.log(integrator.y);
-        console.log(integrator.y_collection);
-
-        window.chart.options.scales.xAxes[0].scaleLabel.labelString = "Time " + "(" + document.getElementById("time-units").value + ")";
-        window.chart.options.scales.yAxes[0].scaleLabel.labelString = document.getElementById("massconc").value;
-        window.chart.update();
-
-    }
-    
     
     var colors = ["#70B9B5", "#EB8138", "#6E6CC0", "#E64445", "#8E99A0", "#38A9C7"]
     var chart_data = {
@@ -382,8 +364,8 @@
         var shortened_y = [];
         for (i = 0; i < len; i++) {
             if (i % 100 == 0) {
-                shortened_x.push(x[i].toPrecision(3));
-                shortened_y.push(y[i].toPrecision(3));
+                shortened_x.push(x[i]);
+                shortened_y.push(y[i]);
             }
         }
         return [shortened_x, shortened_y];
@@ -391,7 +373,74 @@
 
     function graph() {
         var shortened_arr = shorten_out(integrator.y_collection);
-        console.log(shortened_arr);
+        var x_coords = shortened_arr[0];
+        var y_coords = shortened_arr[1];
+        console.log(x_coords);
+        console.log(y_coords);
+        var num_datasets = y_coords[0].length; // All the same length
+
+        // Empty everything out first
+        for (i = 0; i < 6; i++) {
+            window.chart.data.datasets[i].data = [];
+        }
+
+        // Populate datasets that exist
+        for (i = 0; i < num_datasets; i++) {
+            window.chart.data.datasets[i].data = x_coords.map((x_data, j) => ({
+                x: +x_data.toPrecision(3), y: +y_coords[j][i].toPrecision(3)}));
+        }
+
+        console.log(window.chart.data.datasets);
+        window.chart.update();
+
+    }
+
+    function ode() {
+        var ktable = parse_k_table();
+        var time_nsteps = parse_time_nsteps();
+        var num_fields = parseInt(document.getElementById("comps").value);
+
+        var y0 = ktable[1];
+        var k = ktable[0];
+        var time = time_nsteps[0];
+        var nsteps = time_nsteps[1];
+        var dt = time/nsteps;
+
+        var a_const = 1;
+        var select_indexes = [];
+
+        if (document.getElementById("massconc").value == "Concentration") {
+            a_const = math.evaluate(document.getElementById("a_const").value);
+            select_indexes = parse_checks(num_fields);
+        }
+        console.log(select_indexes);
+
+        var dydt = function(dydt, y, t) {
+            for (i = 0; i < num_fields; i++) {
+                if (i == 0 && select_indexes.includes(i + 1)) {
+                    dydt[0] = k[0] * -y[0] / (a_const);
+                } else if (select_indexes.includes(i + 1)) {
+                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (a_const); 
+                } else if (i == 0) {
+                    dydt[0] = k[0] * -y[0];
+                } else {
+                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1];
+                }
+            }
+        }
+
+        integrator = new Integrator(y0, dydt, 0, dt);
+        integrator.steps(nsteps);
+        document.getElementById("output").innerHTML = process_out(integrator.y, time_nsteps[0], time_nsteps[2]);
+        console.log(integrator);
+        console.log(integrator.y);
+        console.log(integrator.y_collection);
+
+        window.chart.options.scales.xAxes[0].scaleLabel.labelString = "Time " + "(" + document.getElementById("time-units").value + ")";
+        window.chart.options.scales.yAxes[0].scaleLabel.labelString = document.getElementById("massconc").value;
+        graph();
+        window.chart.update();
+
     }
     
     window.onload = function() {
@@ -405,6 +454,13 @@
                     display: false,
                     text: "Compartment Model Graph"
                 },
+                animation: {
+                    duration: 0 // general animation time
+                },
+                hover: {
+                    animationDuration: 0 // duration of animations when hovering an item
+                },
+                responsiveAnimationDuration: 0, // animation duration after a resize
                 legend: {
                     display: true,
                     labels: {
@@ -463,13 +519,13 @@
         var n = 100000;
         var dt = t_end/n;
         
-        var k = [100, 0.6, 0.06]
+        var k = [200, 0.6, 0.06]
         //var k = [200, 0.60891022, 0.06007484];
 
         var dydt = function(dydt, y, t) {
             dydt[0] = k[0] * -y[0];
             dydt[1] = k[1] * -y[1] + k[0] * y[0];
-            dydt[2] = k[2] * -y[2] + k[1] * y[1]; /// (.142*.3);  
+            dydt[2] = k[2] * -y[2] + k[1] * y[1] / (.142*.3);  
         }
 
         var integrator = new Integrator(y0, dydt, t0, dt);
