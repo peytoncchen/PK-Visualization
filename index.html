@@ -118,21 +118,24 @@
 
             var cell_name = document.createElement("td");
             var name_field = document.createElement("input");
-            name_field.setAttribute("id", "name" + (i + 1))
+            name_field.setAttribute("id", "name" + (i + 1));
             name_field.setAttribute("style", "width: 100px");
+            name_field.setAttribute("onchange", "reset_output()");
             cell_name.appendChild(name_field);
 
             var cell_ival = document.createElement("td");
             var ival_field = document.createElement("input");
             ival_field.setAttribute("id", "i_val" + (i + 1))
-            ival_field.setAttribute("style", "width: 70px")
+            ival_field.setAttribute("style", "width: 70px");
             ival_field.setAttribute("type", "number");
+            ival_field.setAttribute("onchange", "reset_output()");
             cell_ival.appendChild(ival_field);
 
             var cell_k = document.createElement("td");
             var k_field = document.createElement("input");
-            k_field.setAttribute("id", "k_val" + (i + 1))
-            k_field.setAttribute("style", "width: 70px")
+            k_field.setAttribute("id", "k_val" + (i + 1));
+            k_field.setAttribute("style", "width: 70px");
+            k_field.setAttribute("onchange", "reset_output()");
             k_field.setAttribute("type", "number");
             cell_k.appendChild(k_field);
             
@@ -404,7 +407,7 @@
                 x: +x_data.toPrecision(6), y: +y_coords[j][i].toPrecision(6)}));
         }
 
-        console.log(window.chart.data.datasets);
+        // console.log(window.chart.data.datasets);
         window.chart.update();
         return [x_coords, y_coords];
 
@@ -428,7 +431,6 @@
             a_const = math.evaluate(document.getElementById("a_const").value);
             select_indexes = parse_checks("checks", num_fields);
         }
-        console.log(select_indexes);
 
         var dydt = function(dydt, y, t) {
             for (i = 0; i < num_fields; i++) {
@@ -447,9 +449,6 @@
         integrator = new Integrator(y0, dydt, 0, dt);
         integrator.steps(nsteps);
         document.getElementById("output").innerHTML = process_out(integrator.y, time_nsteps[0], time_nsteps[2]);
-        console.log(integrator);
-        console.log(integrator.y);
-        console.log(integrator.y_collection);
 
         window.chart.options.scales.xAxes[0].scaleLabel.labelString = "Time " + "(" + document.getElementById("time-units").value + ")";
         window.chart.options.scales.yAxes[0].scaleLabel.labelString = document.getElementById("massconc").value;
@@ -463,17 +462,28 @@
         document.getElementById("filename-label").style.opacity = 1;
     }
 
+    function get_headers(select_indexes) {
+        var header_arr = [];
+        header_arr.push("Time " + "(" + document.getElementById("time-units").value + ")");
+        for (i = 0; i < select_indexes.length; i++) {
+            var name_id = "name" + select_indexes[i];
+            header_arr.push(document.getElementById(name_id).value + " (Comp " + select_indexes[i] + ")");
+        }
+        return header_arr;
+    }
+
     function process_array(select_indexes) {
         var x_coords = full_dataset[0];
         var y_coords = full_dataset[1];
         var result = [];
+        result.push(get_headers(select_indexes));
 
         for (i = 0; i < x_coords.length; i++) {
             result.push([(+x_coords[i].toPrecision(6)).toLocaleString("fullwide", {useGrouping: false})]);
         }
         for (i = 0; i < y_coords.length; i++) {
             for (j = 0; j < select_indexes.length; j++) {
-                result[i].push((+y_coords[i][select_indexes[j] - 1].toPrecision(6)).toLocaleString("fullwide", {useGrouping: false}));
+                result[i + 1].push((+y_coords[i][select_indexes[j] - 1].toPrecision(6)).toLocaleString("fullwide", {useGrouping: false}));
             }
         }
         return result;
@@ -588,33 +598,5 @@
         gen_k_fields(); // Default value is 1
     };
 </script>
-
-<script>
-    function test() {
-        
-        var y0 = [4000, 0, 0];
-        var t0 = 0;
-        var t_end = 400;
-        var n = 100000;
-        var dt = t_end/n;
-        
-        var k = [200, 0.6, 0.06]
-        //var k = [200, 0.60891022, 0.06007484];
-
-        var dydt = function(dydt, y, t) {
-            dydt[0] = k[0] * -y[0];
-            dydt[1] = k[1] * -y[1] + k[0] * y[0];
-            dydt[2] = k[2] * -y[2] + k[1] * y[1] / (.142*.3);  
-        }
-
-        var integrator = new Integrator(y0, dydt, t0, dt);
-        integrator.steps(n);
-        console.log(integrator);
-        console.log(integrator.y);
-        console.log(integrator.y_collection);
-    }
-</script>
-
-</body>
-    
+</body>    
 </html>
