@@ -404,7 +404,7 @@
         // Populate datasets that exist
         for (i = 0; i < num_datasets; i++) {
             window.chart.data.datasets[i].data = x_coords.map((x_data, j) => ({
-                x: +x_data.toPrecision(6), y: +y_coords[j][i].toPrecision(6)}));
+                x: +x_data.toPrecision(4), y: +y_coords[j][i].toPrecision(5)}));
         }
 
         // console.log(window.chart.data.datasets);
@@ -479,11 +479,11 @@
         result.push(get_headers(select_indexes));
 
         for (i = 0; i < x_coords.length; i++) {
-            result.push([(+x_coords[i].toPrecision(6)).toLocaleString("fullwide", {useGrouping: false})]);
+            result.push([(+x_coords[i].toPrecision(4)).toLocaleString("fullwide", {useGrouping: false})]);
         }
         for (i = 0; i < y_coords.length; i++) {
             for (j = 0; j < select_indexes.length; j++) {
-                result[i + 1].push((+y_coords[i][select_indexes[j] - 1].toPrecision(6)).toLocaleString("fullwide", {useGrouping: false}));
+                result[i + 1].push((+y_coords[i][select_indexes[j] - 1].toPrecision(5)).toLocaleString("fullwide", {useGrouping: false}));
             }
         }
         return result;
