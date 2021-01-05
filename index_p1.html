@@ -5,17 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
     <link rel="stylesheet" href="style.css">
-    <script type="text/javascript">
-        // set the pyodide files URL (packages.json, pyodide.asm.data etc)
-        window.languagePluginUrl = 'https://cdn.jsdelivr.net/pyodide/v0.16.1/full/';
-    </script>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.16.1/full/pyodide.js"></script>
 </head>
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/8.1.0/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
-    <script src="https://unpkg.com/optimization-js@latest/dist/optimization.js"></script>
 
     <h1>Pharmacokinetic Modeling and Visualization Tool</h1>
     <h2 style="text-align: left;">Background</h2>
@@ -84,7 +78,7 @@
                     </tr>
                     <tr id="button_row">
                         <td>
-                            <button type="button" onclick="ode()">Calculate & Graph</button>
+                            <button type="button" id="calcgraph" onclick="ode()">Calculate & Graph</button>
                         </td>
                         <td id="dwnld_box">
                             <button type="button" id="dwnld" onclick="download()" disabled>Download</button>
@@ -214,6 +208,7 @@
         document.getElementById("filename").disabled = true;
         document.getElementById("filename-label").style.opacity = 0.4;
         document.getElementById("filename").value = "";
+        document.getElementById("calcgraph").disabled = false;
 
         document.getElementById("output").innerHTML = "";
         for (i = 0; i < 6; i++) {
@@ -466,6 +461,7 @@
         document.getElementById("dwnld").disabled = false;
         document.getElementById("filename").disabled = false;
         document.getElementById("filename-label").style.opacity = 1;
+        document.getElementById("calcgraph").disabled = true;
     }
 
     function get_headers(select_indexes) {
@@ -603,20 +599,6 @@
         })
         gen_k_fields(); // Default value is 1
     };
-</script>
-<script>
-    languagePluginLoader.then(function () {
-        console.log(pyodide.runPython(`
-            import sys
-            sys.version
-        `));
-        pyodide.loadPackage('numpy').then(() => {
-            pyodide.runPython('import numpy as np')
-            var arr = pyodide.runPython("np.linspace(0, 5, 10)");
-            console.log(arr[0]);
-        });
-        pyodide.runPython('print(1 + 4)');
-    });
 </script>
 </body>    
 </html>
