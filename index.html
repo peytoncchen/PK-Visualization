@@ -19,7 +19,8 @@
     <h2 style="text-align: left;">Background</h2>
     <p style="padding-bottom: 10px;"> Fill in some background as to what this thing does.
         It hits some fancy diff-eqs, then it rams some numbers through some packages. Then
-        it spits out numbers and a wonderful graph as desired.
+        it spits out numbers and a wonderful graph as desired. Part 2 uses Pyodide which allows
+        us to run scipy.optimize.minimize to minimize the SSEs - go WASM!
     </p>
     <hr class="solid">
     <h2 style="padding-top: 10px;">Pharmacokinetic Data Modeling Calculator and Visualizer</h2>
@@ -33,7 +34,7 @@
                             <label for="comps">Number of Compartments</label>
                         </td>
                         <td>
-                            <select id="comps" onchange="gen_k_fields()">
+                            <select id="comps" onchange="gen_k_fields('comps', 'kval_table', 'massconc')">
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
@@ -74,7 +75,7 @@
                             <label for="massconc">Mass or Concentration</label>
                         </td>
                         <td>
-                            <select id="massconc" onchange="gen_conc_field()">
+                            <select id="massconc" onchange="gen_conc_field('massconc', 'input_table', 5, 'comps')">
                                 <option value="Mass">Mass</option>
                                 <option value="Concentration">Concentration</option>
                             </select>
@@ -94,8 +95,8 @@
                 </table>
             </form>
         </div>
-        <div style="width: 700px; height: 500px; padding-left: 15px;">
-            <canvas  id="my_graph"></canvas>
+        <div style="padding-left: 15px;">
+            <canvas style="width: 600px; height: 375px;"id="my_graph"></canvas>
             <div style="align-items: center;">
                 <p id="output"></p>
             </div>
@@ -104,14 +105,68 @@
     <div>
         <hr class="solid">
         <h2 style="padding-top: 10px;">k-value Calculator</h2>
+        <div style="display: flex">
+            <div>
+                <form id=inputform2>
+                    <table style="float: left" cellspacing="10" cellpadding="10" id="input_table2">
+                        <tr>
+                            <td>
+                                <label for="file_csv">Choose CSV file to upload</label>
+                            </td>
+                            <td>
+                                <input type="file" id="file_csv" accept=".csv,.txt" disabled>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label for="comps2">Number of Compartments</label>
+                            </td>
+                            <td>
+                                <select id="comps2" onchange="gen_k_fields('comps2', 'kval_table2', 'massconc2')">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr id="row5">
+                            <td>
+                                <label for="massconc2">Mass or Concentration</label>
+                            </td>
+                            <td>
+                                <select id="massconc2" onchange="gen_conc_field('massconc2', 'input_table2', 3, 'comps2')">
+                                    <option value="Mass">Mass</option>
+                                    <option value="Concentration">Concentration</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <button type="button" id="calck" onclick="readCSV()">Calculate k-values</button>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="float: left" cellspacing="10" cellpadding="10" id="kval_table2">
+                    </table>
+                </form>
+            </div>
+        </div>
     </div>
 
 <script>
-    function gen_k_fields() {
-        var num_fields = parseInt(document.getElementById("comps").value);
-        var table = document.getElementById("kval_table");
+    function gen_k_fields(comps, k_table, conc) {
+        var num_fields = parseInt(document.getElementById(comps).value);
+        var table = document.getElementById(k_table);
         // reset innerHTML
-        table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
+        if (k_table == "kval_table") {
+            table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
+        } else {
+            table.innerHTML = "<tr>\n<th>Compartment</th>\n<th>Low Bound</th>\n<th>High Bound</th>\n<th>Initial value</th><th>Constrain</th></tr>";
+        }
+        
         for (i = 0; i < num_fields; i++) {
             var row = document.createElement("tr");
 
@@ -119,46 +174,88 @@
             var label = document.createElement("label");
             label.innerHTML = (i + 1).toString();
             cell_label.appendChild(label);
-
-            var cell_name = document.createElement("td");
-            var name_field = document.createElement("input");
-            name_field.setAttribute("id", "name" + (i + 1));
-            name_field.setAttribute("style", "width: 100px");
-            name_field.setAttribute("onchange", "reset_output()");
-            cell_name.appendChild(name_field);
-
-            var cell_ival = document.createElement("td");
-            var ival_field = document.createElement("input");
-            ival_field.setAttribute("id", "i_val" + (i + 1));
-            ival_field.setAttribute("style", "width: 70px");
-            ival_field.setAttribute("type", "number");
-            ival_field.setAttribute("onchange", "reset_output()");
-            cell_ival.appendChild(ival_field);
-
-            var cell_k = document.createElement("td");
-            var k_field = document.createElement("input");
-            k_field.setAttribute("id", "k_val" + (i + 1));
-            k_field.setAttribute("style", "width: 70px");
-            k_field.setAttribute("onchange", "reset_output()");
-            k_field.setAttribute("type", "number");
-            cell_k.appendChild(k_field);
-            
             row.appendChild(cell_label);
-            row.appendChild(cell_name);
-            row.appendChild(cell_ival);
-            row.appendChild(cell_k);
+
+            if (k_table == "kval_table") {
+                var cell_name = document.createElement("td");
+                var name_field = document.createElement("input");
+                name_field.setAttribute("id", "name" + (i + 1));
+                name_field.setAttribute("style", "width: 100px");
+                name_field.setAttribute("onchange", "reset_output()");
+                cell_name.appendChild(name_field);
+                row.appendChild(cell_name);
+
+                var cell_ival = document.createElement("td");
+                var ival_field = document.createElement("input");
+                ival_field.setAttribute("id", "i_val" + (i + 1));
+                ival_field.setAttribute("style", "width: 70px");
+                ival_field.setAttribute("type", "number");
+                ival_field.setAttribute("onchange", "reset_output()");
+                cell_ival.appendChild(ival_field);
+                row.appendChild(cell_ival);
+
+                var cell_k = document.createElement("td");
+                var k_field = document.createElement("input");
+                k_field.setAttribute("id", "k_val" + (i + 1));
+                k_field.setAttribute("style", "width: 70px");
+                k_field.setAttribute("onchange", "reset_output()");
+                k_field.setAttribute("type", "number");
+                cell_k.appendChild(k_field);
+                row.appendChild(cell_k);
+            } else {
+                var cell_l_bou = document.createElement("td");
+                var l_bou_field = document.createElement("input");
+                l_bou_field.setAttribute("id", "l_bou" + (i + 1));
+                l_bou_field.setAttribute("style", "width: 70px");
+                l_bou_field.setAttribute("type", "number");
+                //l_bou_field.setAttribute("onchange", "reset_output()");
+                cell_l_bou.appendChild(l_bou_field);
+                row.appendChild(cell_l_bou);
+
+                var cell_h_bou = document.createElement("td");
+                var h_bou_field = document.createElement("input");
+                h_bou_field.setAttribute("id", "h_bou" + (i + 1));
+                h_bou_field.setAttribute("style", "width: 70px");
+                h_bou_field.setAttribute("type", "number");
+                //h_bou_field.setAttribute("onchange", "reset_output()");
+                cell_h_bou.appendChild(h_bou_field);
+                row.appendChild(cell_h_bou);
+
+                var cell_ival2 = document.createElement("td");
+                var ival2 = document.createElement("input");
+                ival2.setAttribute("id", "i_val" + (i + 1) + "2");
+                ival2.setAttribute("style", "width: 70px");
+                //k_field.setAttribute("onchange", "reset_output()");
+                ival2.setAttribute("type", "number");
+                cell_ival2.appendChild(ival2);
+                row.appendChild(cell_ival2);
+
+                var cell_const = document.createElement("td");
+                var option = document.createElement("input");
+                option.setAttribute("type", "checkbox");
+                option.setAttribute("class", "constrain");
+                option.setAttribute("value", (i + 1).toString());
+                option.setAttribute("style", "padding: 5px;");
+                option.setAttribute("onchange", "h_bou_off()");
+                cell_const.appendChild(option);
+                row.appendChild(cell_const);
+            }
 
             table.appendChild(row);
         }
-        if (document.getElementById("massconc").value == "Concentration") {
-                document.getElementById("input_table").deleteRow(5)
-                gen_conc_field();
+        if (document.getElementById(conc).value == "Concentration") {
+            var row = k_table == "kval_table" ? 5 : 3;
+            var inp_table = k_table == "kval_table" ? "input_table" : "input_table2";
+            document.getElementById(inp_table).deleteRow(row)
+            gen_conc_field(conc, inp_table, row, comps);
         }
-        reset_output();
+        if (k_table == "kval_table") {
+            reset_output();
+        }
     }
 
-    function create_checks(div, class_nm, tb_row, cell_input) {
-        var num_fields = parseInt(document.getElementById("comps").value);
+    function create_checks(div, class_nm, tb_row, cell_input, comps) {
+        var num_fields = parseInt(document.getElementById(comps).value);
         for (i = 0; i < num_fields; i++) {
             var option = document.createElement("input");
             option.setAttribute("type", "checkbox")
@@ -180,9 +277,9 @@
         cell_input.appendChild(div);
     }
 
-    function gen_conc_field() {
-        if (document.getElementById("massconc").value == "Concentration") {
-            var row = document.getElementById("input_table").insertRow(5);
+    function gen_conc_field(option, inp_table, row, comps) {
+        if (document.getElementById(option).value == "Concentration") {
+            var row = document.getElementById(inp_table).insertRow(row);
 
             var cell_label = document.createElement("td");
             var label = document.createElement("label");
@@ -198,12 +295,30 @@
             cell_input.appendChild(input_field);
 
             var div = document.createElement("div");
-            create_checks(div, "checks", row, cell_input);
+            var chk_class = inp_table == "input_table" ? "checks" : "checks2"
+            create_checks(div, chk_class, row, cell_input, comps);
             row.appendChild(cell_input);
         } else {
-            document.getElementById("input_table").deleteRow(5)
+            document.getElementById(inp_table).deleteRow(row)
         }
-        reset_output();
+        if (inp_table == "input_table") {
+            reset_output();
+        }
+    }
+
+    function h_bou_off() {
+        var num_fields = parseInt(document.getElementById("comps2").value);
+        var indexes = parse_checks("constrain", num_fields)
+        for (i = 0; i < num_fields; i++) {
+            if (indexes.includes(i + 1)) {
+                var elem = document.getElementById("h_bou" + (i + 1))
+                elem.disabled = true;
+                elem.value = "";
+            } else {
+                document.getElementById("h_bou" + (i + 1)).disabled = false;
+            }
+        }
+        
     }
 
     function reset_output() {
@@ -461,7 +576,7 @@
         window.chart.update();
         var select_dwnld = document.getElementById("select_dwnld");
         create_checks(select_dwnld, "dwnld_check", document.getElementById("button_row"),
-            document.getElementById("dwnld_box"));
+            document.getElementById("dwnld_box"), "comps");
         document.getElementById("dwnld").disabled = false;
         document.getElementById("filename").disabled = false;
         document.getElementById("filename-label").style.opacity = 1;
@@ -501,10 +616,12 @@
             for (var j = 0; j < row.length; j++) {
                 var innerValue = row[j] === null ? '' : row[j].toString();
                 var result = innerValue.replace(/"/g, '""');
-                if (result.search(/("|,|\n)/g) >= 0)
+                if (result.search(/("|,|\n)/g) >= 0) {
                     result = '"' + result + '"';
-                if (j > 0)
+                }
+                if (j > 0) {
                     finalVal += ',';
+                }
                 finalVal += result;
             }
             return finalVal + '\n';
@@ -532,7 +649,44 @@
             }
         }
     }
+    function readCSV() {
+        var fileUpload = document.getElementById("file_csv");
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    let csvdata = e.target.result;
+                    parseCSV(csvdata);
+                }
+                reader.readAsText(fileUpload.files[0]);
+            } else {
+                alert("This browser does not support HTML5.");
+            }
+        } else {
+            alert("Please upload a valid CSV file.");
+        }
+    }
 
+    function parseCSV(allText) {
+        var allTextLines = allText.split(/\r\n|\n/);
+        var headers = allTextLines[0].split(',');
+        var lines = [];
+
+        for (var i=1; i<allTextLines.length; i++) {
+            var data = allTextLines[i].split(',');
+            if (data.length == headers.length) {
+                var tarr = [];
+                for (var j=0; j<headers.length; j++) {
+                    tarr.push(parseFloat(data[j]));
+                }
+                lines.push(tarr);
+            }
+        }
+        console.log(headers);
+        console.log(lines);
+    }
+    
     function download() {
         var select_indexes = parse_checks("dwnld_check", parseInt(document.getElementById("comps").value));
         var rows = process_array(select_indexes);
@@ -601,17 +755,22 @@
 
             },
         })
-        gen_k_fields(); // Default value is 1
-        languagePluginLoader.then(function () {
+        gen_k_fields("comps", "kval_table", "massconc"); // Default value is 1
+        gen_k_fields("comps2", "kval_table2", "massconc2")
+        languagePluginLoader.then( function () {
             console.log(pyodide.runPython(`
                 import sys
                 sys.version
             `));
-            pyodide.loadPackage(['numpy']).then(() => {
+            /*
+            pyodide.loadPackage(['numpy', 'scipy']).then(() => {
                 pyodide.runPython('import numpy as np')
                 var arr = pyodide.runPython("np.linspace(0, 5, 10)");
                 console.log(arr[0]);
+                document.getElementById("file_csv").disabled = false;
             });
+            */
+            document.getElementById("file_csv").disabled = false;
         });
     };
 </script>
