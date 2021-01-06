@@ -164,7 +164,8 @@
         if (k_table == "kval_table") {
             table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
         } else {
-            table.innerHTML = "<tr>\n<th>Compartment</th>\n<th>Low Bound</th>\n<th>High Bound</th>\n<th>Initial value</th><th>Constrain</th></tr>";
+            table.innerHTML = `<tr>\n<th>Compartment</th>\n<th>Low Bound</th>\n<th>High Bound</th>\n<th>Initial value
+                </th><th>Constrain</th></tr>`;
         }
         
         for (i = 0; i < num_fields; i++) {
@@ -570,7 +571,8 @@
         integrator.steps(nsteps);
         document.getElementById("output").innerHTML = process_out(integrator.y, time_nsteps[0], time_nsteps[2]);
 
-        window.chart.options.scales.xAxes[0].scaleLabel.labelString = "Time " + "(" + document.getElementById("time-units").value + ")";
+        window.chart.options.scales.xAxes[0].scaleLabel.labelString = "Time " + "(" + document.getElementById("time-units").value 
+            + ")";
         window.chart.options.scales.yAxes[0].scaleLabel.labelString = document.getElementById("massconc").value;
         full_dataset = graph();
         window.chart.update();
@@ -604,7 +606,8 @@
         }
         for (i = 0; i < y_coords.length; i++) {
             for (j = 0; j < select_indexes.length; j++) {
-                result[i + 1].push((+y_coords[i][select_indexes[j] - 1].toPrecision(5)).toLocaleString("fullwide", {useGrouping: false}));
+                result[i + 1].push((+y_coords[i][select_indexes[j] - 1].toPrecision(5)).toLocaleString("fullwide",
+                    {useGrouping: false}));
             }
         }
         return result;
@@ -649,24 +652,6 @@
             }
         }
     }
-    function readCSV() {
-        var fileUpload = document.getElementById("file_csv");
-        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
-        if (regex.test(fileUpload.value.toLowerCase())) {
-            if (typeof (FileReader) != "undefined") {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    let csvdata = e.target.result;
-                    parseCSV(csvdata);
-                }
-                reader.readAsText(fileUpload.files[0]);
-            } else {
-                alert("This browser does not support HTML5.");
-            }
-        } else {
-            alert("Please upload a valid CSV file.");
-        }
-    }
 
     function parseCSV(allText) {
         var allTextLines = allText.split(/\r\n|\n/);
@@ -685,6 +670,25 @@
         }
         console.log(headers);
         console.log(lines);
+    }
+
+    function readCSV() {
+        var fileUpload = document.getElementById("file_csv");
+        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+        if (regex.test(fileUpload.value.toLowerCase())) {
+            if (typeof (FileReader) != "undefined") {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    let csvdata = e.target.result;
+                    parseCSV(csvdata);
+                }
+                reader.readAsText(fileUpload.files[0]);
+            } else {
+                alert("This browser does not support HTML5.");
+            }
+        } else {
+            alert("Please upload a valid CSV file.");
+        }
     }
     
     function download() {
