@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript">
         // set the pyodide files URL (packages.json, pyodide.asm.data etc)
-        window.languagePluginUrl = 'https://cdn.jsdelivr.net/pyodide/dev/full/';
+        window.languagePluginUrl = 'https://cdn.jsdelivr.net/pyodide/v0.16.1/full/';
     </script>
-    <script src="https://cdn.jsdelivr.net/pyodide/dev/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.16.1/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/8.1.0/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
@@ -20,7 +20,7 @@
     <p style="padding-bottom: 10px;"> Fill in some background as to what this thing does.
         It hits some fancy diff-eqs, then it rams some numbers through some packages. Then
         it spits out numbers and a wonderful graph as desired. Part 2 uses Pyodide which allows
-        us to run scipy.optimize.minimize to minimize the SSEs - go WASM!
+        us to run scipy.optimize.brute find low SSEs and proceed with a gradient descent - go WASM!
     </p>
     <hr class="solid">
     <h2 style="padding-top: 10px;">Pharmacokinetic Data Modeling Calculator and Visualizer</h2>
@@ -144,6 +144,13 @@
                     </tr>
                     <tr>
                         <td>
+                            <label>CSV data represents</label>
+                        </td>
+                        <td id="calck_cell">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <button type="button" id="calck" onclick="calculate_k()" disabled>Calculate k-values</button>
                         </td>
                     </tr>
@@ -163,7 +170,7 @@
             table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
         } else {
             table.innerHTML = `<tr>\n<th>Compartment</th>\n<th>Low Bound</th>\n<th>High Bound</th>\n<th>Initial value
-                </th><th>Constrain</th><th>Guess k-value</th></tr>`;
+                </th><th>Constrain</th><th>k-value</th></tr>`;
         }
         
         for (var i = 0; i < num_fields; i++) {
@@ -207,7 +214,6 @@
                 l_bou_field.setAttribute("id", "l_bou" + (i + 1));
                 l_bou_field.setAttribute("style", "width: 70px");
                 l_bou_field.setAttribute("type", "number");
-                //l_bou_field.setAttribute("onchange", "reset_output()");
                 cell_l_bou.appendChild(l_bou_field);
                 row.appendChild(cell_l_bou);
 
@@ -216,7 +222,6 @@
                 h_bou_field.setAttribute("id", "h_bou" + (i + 1));
                 h_bou_field.setAttribute("style", "width: 70px");
                 h_bou_field.setAttribute("type", "number");
-                //h_bou_field.setAttribute("onchange", "reset_output()");
                 cell_h_bou.appendChild(h_bou_field);
                 row.appendChild(cell_h_bou);
 
@@ -224,7 +229,6 @@
                 var ival2 = document.createElement("input");
                 ival2.setAttribute("id", "i_val" + (i + 1) + "2");
                 ival2.setAttribute("style", "width: 70px");
-                //ival2.setAttribute("onchange", "reset_output()");
                 ival2.setAttribute("type", "number");
                 cell_ival2.appendChild(ival2);
                 row.appendChild(cell_ival2);
@@ -244,6 +248,7 @@
                 k_try.setAttribute("id", "k_try" + (i + 1));
                 k_try.setAttribute("style", "width: 70px");
                 k_try.setAttribute("type", "number");
+                k_try.setAttribute("disabled", true);
                 cell_k_try.appendChild(k_try);
                 row.appendChild(cell_k_try);
             }
@@ -258,6 +263,30 @@
         }
         if (k_table == "kval_table") {
             reset_output();
+        } else {
+            gen_sel_data(num_fields);
+        }
+    }
+
+    function gen_sel_data(num_fields) {
+        var cell = document.getElementById("calck_cell");
+        cell.innerHTML = "";
+        for (var i = 0; i < num_fields; i++) {
+            var radio_but = document.createElement("input");
+            radio_but.setAttribute("type", "radio");
+            radio_but.setAttribute("name", "select")
+            radio_but.setAttribute("value", (i + 1).toString());
+            if (i == 0) {radio_but.setAttribute("checked", true)}
+            cell.appendChild(radio_but);
+
+            var label = document.createElement("label");
+            label.setAttribute("style", "font-size: 13px; padding: 5px");
+            label.innerHTML = "Compartment " + (i + 1);
+            cell.appendChild(label);
+            if (num_fields > 3 && i == 2) {
+                var brk2 = document.createElement("br");
+                cell.appendChild(brk2);
+            }
         }
     }
 
@@ -296,7 +325,6 @@
             var cell_input = document.createElement("td");
             var input_field = document.createElement("input");
             input_field.setAttribute("id", "a_const");
-            input_field.setAttribute("style", "padding-right: 50px;");
             input_field.setAttribute("style", "width: 70px");
             cell_input.appendChild(input_field);
 
@@ -319,6 +347,7 @@
             if (indexes.includes(i + 1)) {
                 var lelem = document.getElementById("l_bou" + (i + 1));
                 var helem = document.getElementById("h_bou" + (i + 1));
+                document.getElementById("k_try" + (i + 1)).disabled = false;
                 lelem.disabled = true;
                 lelem.value = "";
                 helem.disabled = true;
@@ -326,6 +355,9 @@
             } else {
                 document.getElementById("h_bou" + (i + 1)).disabled = false;
                 document.getElementById("l_bou" + (i + 1)).disabled = false;
+                var k_try = document.getElementById("k_try" + (i + 1));
+                k_try.disabled = true;
+                k_try.value = "";
             }
         }
         
@@ -408,13 +440,7 @@
     var integrator;
     var full_dataset;
 
-    // Part 2 k-val Calc Global Variables
-    var full_dataset2;
-    var in_csv_data;
-    var ktable2;
-    var num_fields2;
-    var a_const2;
-    var select_indexes2;
+    // Part 1 functions
 
     function parse_k_table() {
         var k_array = [];
@@ -678,6 +704,14 @@
         exportToCsv(filename + ".csv", rows);
     }
 
+    // Part 2 k-val Calc Global Variables
+    var in_csv_data;
+    var represents;
+    var k_table2;
+    var dydt2;
+
+    // Part 2 functions
+
     function parseCSV(allText) {
         var allTextLines = allText.split(/\r\n|\n/);
         var headers = allTextLines[0].split(',');
@@ -735,61 +769,69 @@
         return [bounds, init_array, k_try];
     }
 
-    async function calculate_k() {
-        ktable2 = parse_k_table2();
-        num_fields2 = parseInt(document.getElementById("comps2").value);
+    function parse_radio(name, num_fields) {
+        var radio = document.getElementsByName(name);
+        var select_index;
 
-        a_const2 = 1;
-        select_indexes2 = [];
+        for (var i = 0; i < num_fields; i++) {
+            if (radio[i].checked) {
+                select_index = parseInt(radio[i].value);
+                break;
+            }
+        }
+        return select_index;
+    }
+
+    async function calculate_k() {
+        k_table2 = parse_k_table2();
+        var num_fields2 = parseInt(document.getElementById("comps2").value);
+        represents = parse_radio("select", num_fields2);
+
+        var a_const2 = 1;
+        var select_indexes2 = [];
         if (document.getElementById("massconc2").value == "Concentration") {
             a_const2 = math.evaluate(document.getElementById("a_const").value);
             select_indexes2 = parse_checks("checks2", num_fields2);
         }
         in_csv_data = await readCSV();
-        var y0 = [...ktable2[1]];
-        var k = [...ktable2[2]];
-        var dt = 90/(90*600+1); // user input?
 
-        var dydt = function(dydt, y, t) {
+
+        dydt2 = function(dydt2, y, t) {
+            let k = pyodide.globals.k
             for (var i = 0; i < num_fields2; i++) {
                 if (i == 0 && select_indexes2.includes(i + 1)) {
-                    dydt[0] = k[0] * -y[0] / (a_const2);
+                    dydt2[0] = k[0] * -y[0] / (a_const2);
                 } else if (select_indexes2.includes(i + 1)) {
-                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (a_const2); 
+                    dydt2[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (a_const2); 
                 } else if (i == 0) {
-                    dydt[0] = k[0] * -y[0];
+                    dydt2[0] = k[0] * -y[0];
                 } else {
-                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1];
+                    dydt2[i] = k[i] * -y[i] + k[i - 1] * y[i - 1];
                 }
             }
         }
-
-        var integrator2 = new Integrator(y0, dydt, 0, dt);
-        integrator2.steps(90*600+1);
-        full_dataset2 = integrator2.y_collection;
-        /*
-        console.log(full_dataset2);
-
-        console.log(in_csv_data);
-        console.log(ktable2);
-        console.log(num_fields2);
-        */
+        
         pyodide.runPython(`
             import js
 
             in_csv_data = js.in_csv_data
-            k_table2 = js.ktable2
-            full_dataset2 = js.full_dataset2
+            js_table = js.k_table2
+            dydt2 = js.dydt2
+            represents = js.represents
 
-            def convert_k_table():
-                for i in range(len(k_table2[0])):
-                    if k_table2[0][i]:
-                        k_table2[0][i][0] = float(k_table2[0][i][0])
-                        k_table2[0][i][1] = float(k_table2[0][i][1])
-                k_table2[1] = [float(num) for num in k_table2[1]]
-                k_table2[2] = [float(num) for num in k_table2[2]]
+            k = [0.09, 0.04, 0.27]
+            y0 = [4000, 0, 1]
+            
 
-            convert_k_table()
+
+            def copy_array(array):
+                copy = [[],[],[]]
+                copy[0] = [[float(lst[0]), float(lst[1])] if lst else [] for lst in array[0]]
+                copy[1] = [float(num) for num in array[1]]
+                copy[2] = [float(num) for num in array[2]]
+                return copy
+            
+            k_table2 = copy_array(js_table)
 
             def arr_to_dic(arr):
                 result = {}
@@ -812,9 +854,11 @@
                         SSE += math.sqrt(diff**2)
                 return SSE
 
+            total_time = max(list(dic))
+            timepoints = 300
+            dt = total_time/(total_time*timepoints+1)
+
             def construct_time(dic):
-                total_time = 90
-                timepoints = 600
                 time_range = np.linspace(0,total_time,total_time*timepoints+1)
                 time_measured = list(dic)
 
@@ -832,7 +876,7 @@
                 timemeasured,timeindex = construct_time(actual_dic)
                 plas_solve = []
                 for i in range(len(solve)):
-                    plas_solve.append(solve[i][2])
+                    plas_solve.append(solve[i][represents - 1])
                 non_normal_conc = []
                 for index in timeindex:
                     non_normal_conc.append(plas_solve[index])
@@ -842,8 +886,12 @@
                     returnDic[timemeasured[i]] = normal_conc[i]
                 return returnDic
             
-            fit = make_fit_dic(full_dataset2, dic)
-            def SSEfromK(k_table):
+            def SSEfromK(ks):
+                # k = ks
+                integrator = js.Integrator.new(y0, dydt2, 0, dt)
+                integrator.steps(total_time*timepoints+1)
+                full_dataset2 = integrator.y_collection
+                fit = make_fit_dic(full_dataset2, dic)
                 return SSE(fit, dic)
             
             def process_bounds(k_table2):
@@ -857,9 +905,9 @@
                         result.append((k_try[i], k_try[i] + 0.0001))
                 return result
             
-            print(SSEfromK(k_table2[2]))
-            bounds_tup = tuple(process_bounds(k_table2))
-            print(bounds_tup)
+            print(SSEfromK(k))
+            # bounds_tup = tuple(process_bounds(k_table2))
+            # print(bounds_tup)
 
             # print(minimize(SSEfromK, [0.09, 0.04, 0.27], bounds=((0.01,5),(0.01,5),(0.01,5))))
             # from scipy.optimize import brute
@@ -935,11 +983,11 @@
                 import math
                 sys.version
             `));
-            /*
+            
             pyodide.loadPackage('numpy').then(() => {
                 pyodide.runPython('import numpy as np')
             });
-            */
+            
             
             /*
             pyodide.loadPackage(['numpy', 'scipy']).then(() => {
@@ -949,7 +997,7 @@
             });
             */
             
-            //document.getElementById("calck").disabled = false;
+            document.getElementById("calck").disabled = false;
             
         });
     };
