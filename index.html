@@ -764,7 +764,9 @@
             }
             bounds.push(i_bound);
             init_array.push(parseFloat(document.getElementById("i_val" + (i + 1) + "2").value));
-            k_try.push(parseFloat(document.getElementById("k_try" + (i + 1)).value));
+            if (parseFloat(document.getElementById("k_try" + (i + 1)).value)) {
+                k_try.push([parseFloat(document.getElementById("k_try" + (i + 1)).value), (i + 1)]);   
+            }
         }
         return [bounds, init_array, k_try];
     }
@@ -822,8 +824,6 @@
             k = [0.09, 0.04, 0.27]
             y0 = [4000, 0, 1]
             
-
-
             def copy_array(array):
                 copy = [[],[],[]]
                 copy[0] = [[float(lst[0]), float(lst[1])] if lst else [] for lst in array[0]]
@@ -887,31 +887,37 @@
                 return returnDic
             
             def SSEfromK(ks):
-                # k = ks
+                k = ks
+                if k_table[2]:
+                    for i in range(len(k_table[2])):
+                        entry = k_table[2][i]
+                        k[entry[1]] = entry[0]
                 integrator = js.Integrator.new(y0, dydt2, 0, dt)
                 integrator.steps(total_time*timepoints+1)
                 full_dataset2 = integrator.y_collection
                 fit = make_fit_dic(full_dataset2, dic)
                 return SSE(fit, dic)
             
-            def process_bounds(k_table2):
+            def process_bounds(array):
                 result = []
-                bounds = k_table2[0]
-                k_try = k_table2[2]
+                bounds = array[0]
+                k_try = array[2]
+                index_k_try = 0
                 for i in range(len(bounds)):
                     if bounds[i]:
                         result.append((bounds[i][0], bounds[i][1]))
                     else:
-                        result.append((k_try[i], k_try[i] + 0.0001))
-                return result
+                        result.append((k_try[index_k_try][0], k_try[index_k_try][0]))
+                        index_k_try += 1
+                return tuple(result)
             
-            print(SSEfromK(k))
-            # bounds_tup = tuple(process_bounds(k_table2))
-            # print(bounds_tup)
+            # print(SSEfromK(k))
+            bounds_tup = tuple(process_bounds(k_table2))
+            print(bounds_tup)
 
             # print(minimize(SSEfromK, [0.09, 0.04, 0.27], bounds=((0.01,5),(0.01,5),(0.01,5))))
-            # from scipy.optimize import brute
-            # print(brute(SSEfromK, ((0.01,2),(0.01,0.4),(0.01,0.4)), Ns=7))
+            from scipy.optimize import brute
+            print(brute(SSEfromK, ((0.01,2),(0.01,0.4),(0.01,0.4)), Ns=5))
     `);
     }
     
@@ -983,19 +989,19 @@
                 import math
                 sys.version
             `));
-            
+            /*
             pyodide.loadPackage('numpy').then(() => {
                 pyodide.runPython('import numpy as np')
             });
+            */
             
             
-            /*
+            
             pyodide.loadPackage(['numpy', 'scipy']).then(() => {
                 pyodide.runPython('import numpy as np');
-                pyodide.runPython('from scipy.optimize import minimize');
                 document.getElementById("calck").disabled = false;
             });
-            */
+            
             
             document.getElementById("calck").disabled = false;
             
