@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="style.css">
     <script type="text/javascript">
         // set the pyodide files URL (packages.json, pyodide.asm.data etc)
-        window.languagePluginUrl = 'https://cdn.jsdelivr.net/pyodide/v0.16.1/full/';
+        window.languagePluginUrl = 'https://cdn.jsdelivr.net/pyodide/dev/full/';
     </script>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.16.1/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/dev/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/8.1.0/math.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
@@ -95,7 +95,7 @@
                 </table>
             </form>
         </div>
-        <div style="padding-left: 15px;">
+        <div style="padding-left: 5px;">
             <canvas style="width: 600px; height: 375px;"id="my_graph"></canvas>
             <div style="align-items: center;">
                 <p id="output"></p>
@@ -105,54 +105,52 @@
     <div>
         <hr class="solid">
         <h2 style="padding-top: 10px;">k-value Calculator</h2>
-        <div style="display: flex">
-            <div>
-                <form id=inputform2>
-                    <table style="float: left" cellspacing="10" cellpadding="10" id="input_table2">
-                        <tr>
-                            <td>
-                                <label for="file_csv">Choose CSV file to upload</label>
-                            </td>
-                            <td>
-                                <input type="file" id="file_csv" accept=".csv,.txt" disabled>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <label for="comps2">Number of Compartments</label>
-                            </td>
-                            <td>
-                                <select id="comps2" onchange="gen_k_fields('comps2', 'kval_table2', 'massconc2')">
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                    <option value="6">6</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr id="row5">
-                            <td>
-                                <label for="massconc2">Mass or Concentration</label>
-                            </td>
-                            <td>
-                                <select id="massconc2" onchange="gen_conc_field('massconc2', 'input_table2', 3, 'comps2')">
-                                    <option value="Mass">Mass</option>
-                                    <option value="Concentration">Concentration</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <button type="button" id="calck" onclick="readCSV()">Calculate k-values</button>
-                            </td>
-                        </tr>
-                    </table>
-                    <table style="float: left" cellspacing="10" cellpadding="10" id="kval_table2">
-                    </table>
-                </form>
-            </div>
+        <div style="margin: auto;">
+            <form id=inputform2>
+                <table style="float: left;" cellspacing="10" cellpadding="10" id="input_table2">
+                    <tr>
+                        <td>
+                            <label for="file_csv">Choose CSV file to upload</label>
+                        </td>
+                        <td>
+                            <input type="file" id="file_csv" accept=".csv,.txt">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="comps2">Number of Compartments</label>
+                        </td>
+                        <td>
+                            <select id="comps2" onchange="gen_k_fields('comps2', 'kval_table2', 'massconc2')">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="massconc2">Mass or Concentration</label>
+                        </td>
+                        <td>
+                            <select id="massconc2" onchange="gen_conc_field('massconc2', 'input_table2', 3, 'comps2')">
+                                <option value="Mass">Mass</option>
+                                <option value="Concentration">Concentration</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button type="button" id="calck" onclick="calculate_k()" disabled>Calculate k-values</button>
+                        </td>
+                    </tr>
+                </table>
+                <table style="float: left" cellspacing="10" cellpadding="10" id="kval_table2">
+                </table>
+            </form>
         </div>
     </div>
 
@@ -165,10 +163,10 @@
             table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
         } else {
             table.innerHTML = `<tr>\n<th>Compartment</th>\n<th>Low Bound</th>\n<th>High Bound</th>\n<th>Initial value
-                </th><th>Constrain</th></tr>`;
+                </th><th>Constrain</th><th>Guess k-value</th></tr>`;
         }
         
-        for (i = 0; i < num_fields; i++) {
+        for (var i = 0; i < num_fields; i++) {
             var row = document.createElement("tr");
 
             var cell_label = document.createElement("td");
@@ -226,7 +224,7 @@
                 var ival2 = document.createElement("input");
                 ival2.setAttribute("id", "i_val" + (i + 1) + "2");
                 ival2.setAttribute("style", "width: 70px");
-                //k_field.setAttribute("onchange", "reset_output()");
+                //ival2.setAttribute("onchange", "reset_output()");
                 ival2.setAttribute("type", "number");
                 cell_ival2.appendChild(ival2);
                 row.appendChild(cell_ival2);
@@ -237,9 +235,17 @@
                 option.setAttribute("class", "constrain");
                 option.setAttribute("value", (i + 1).toString());
                 option.setAttribute("style", "padding: 5px;");
-                option.setAttribute("onchange", "h_bou_off()");
+                option.setAttribute("onchange", "bou_off()");
                 cell_const.appendChild(option);
                 row.appendChild(cell_const);
+
+                var cell_k_try = document.createElement("td");
+                var k_try = document.createElement("input");
+                k_try.setAttribute("id", "k_try" + (i + 1));
+                k_try.setAttribute("style", "width: 70px");
+                k_try.setAttribute("type", "number");
+                cell_k_try.appendChild(k_try);
+                row.appendChild(cell_k_try);
             }
 
             table.appendChild(row);
@@ -257,12 +263,11 @@
 
     function create_checks(div, class_nm, tb_row, cell_input, comps) {
         var num_fields = parseInt(document.getElementById(comps).value);
-        for (i = 0; i < num_fields; i++) {
+        for (var i = 0; i < num_fields; i++) {
             var option = document.createElement("input");
             option.setAttribute("type", "checkbox")
             option.setAttribute("class", class_nm);
             option.setAttribute("value", (i + 1).toString());
-            option.setAttribute("style", "padding: 5px;");
             div.appendChild(option);
 
             var opt_lbl = document.createElement("label");
@@ -307,16 +312,20 @@
         }
     }
 
-    function h_bou_off() {
+    function bou_off() {
         var num_fields = parseInt(document.getElementById("comps2").value);
         var indexes = parse_checks("constrain", num_fields)
-        for (i = 0; i < num_fields; i++) {
+        for (var i = 0; i < num_fields; i++) {
             if (indexes.includes(i + 1)) {
-                var elem = document.getElementById("h_bou" + (i + 1))
-                elem.disabled = true;
-                elem.value = "";
+                var lelem = document.getElementById("l_bou" + (i + 1));
+                var helem = document.getElementById("h_bou" + (i + 1));
+                lelem.disabled = true;
+                lelem.value = "";
+                helem.disabled = true;
+                helem.value = "";
             } else {
                 document.getElementById("h_bou" + (i + 1)).disabled = false;
+                document.getElementById("l_bou" + (i + 1)).disabled = false;
             }
         }
         
@@ -331,7 +340,7 @@
         document.getElementById("calcgraph").disabled = false;
 
         document.getElementById("output").innerHTML = "";
-        for (i = 0; i < 6; i++) {
+        for (var i = 0; i < 6; i++) {
             window.chart.data.datasets[i].data = [];
         }
         window.chart.update();
@@ -340,10 +349,10 @@
 </script>
 
 <script>
-    /* From Ricky Reusser (2015) ode-rk4. Integrates a system of ODEs using the
+    /* Adapted from Ricky Reusser (2015) ode-rk4. Integrates a system of ODEs using the
      * Fourth Order Runge-Kutta (RK-4) Method.
      */
-    var Integrator = function Integrator( y0, deriv, t, dt ) {
+    var Integrator = function Integrator(y0, deriv, t, dt) {
         // Bind variables to this:
         this.deriv = deriv;
         this.y = y0;
@@ -365,20 +374,20 @@
 
     Integrator.prototype.step = function() {
         this.deriv(this._k1, this.y, this.t);
-        for (var i=0; i<this.n; i++) {
+        for (var i = 0; i < this.n; i++) {
             this._w[i] = this.y[i] + this._k1[i] * this.dt * 0.5;
         }
         this.deriv(this._k2, this._w, this.t + this.dt * 0.5);
-        for (var i=0; i<this.n; i++) {
+        for (var i = 0; i < this.n; i++) {
             this._w[i] = this.y[i] + this._k2[i] * this.dt * 0.5;
         }
         this.deriv(this._k3, this._w, this.t + this.dt * 0.5);
-        for (var i=0; i<this.n; i++) {
+        for (var i = 0; i < this.n; i++) {
             this._w[i] = this.y[i] + this._k3[i] * this.dt;
         }
         this.deriv(this._k4, this._w, this.t + this.dt);
         var dto6 = this.dt / 6.0;
-        for (var i=0; i<this.n; i++) {
+        for (var i = 0; i < this.n; i++) {
             this.y[i] += dto6 * (this._k1[i] + 2*this._k2[i] + 2*this._k3[i] + this._k4[i]);
         }
         this.t += this.dt;
@@ -387,7 +396,7 @@
     }
 
     Integrator.prototype.steps = function( n ) {
-        for (var step=0; step<n; step++) {
+        for (var step = 0; step < n; step++) {
             this.step();
         }
         return this;
@@ -395,15 +404,24 @@
 </script>
 
 <script>
+    // Part 1 PK Data Modeling Global Variables
     var integrator;
     var full_dataset;
+
+    // Part 2 k-val Calc Global Variables
+    var full_dataset2;
+    var in_csv_data;
+    var ktable2;
+    var num_fields2;
+    var a_const2;
+    var select_indexes2;
 
     function parse_k_table() {
         var k_array = [];
         var init_array = [];
         var num_fields = parseInt(document.getElementById("comps").value);
 
-        for (i = 0; i < num_fields; i++) {
+        for (var i = 0; i < num_fields; i++) {
             k_array.push(parseFloat(document.getElementById("k_val" + (i + 1)).value));
             init_array.push(parseFloat(document.getElementById("i_val" + (i + 1)).value));
         }
@@ -421,7 +439,7 @@
         var checks = document.getElementsByClassName(class_nm);
         var select_indexes = [];
 
-        for (i = 0; i < num_fields; i++) {
+        for (var i = 0; i < num_fields; i++) {
             if (checks[i].checked) {
                 select_indexes.push(parseInt(checks[i].value));
             }
@@ -431,7 +449,7 @@
 
     function process_out(array, time, t_units) {
         var out_str = "<b><u>Final Results at " + time + " " + t_units + "</u></b><br>";
-        for (i = 0; i < array.length; i++) {
+        for (var i = 0; i < array.length; i++) {
             out_str += ("Compartment " + (i + 1) + ": " + (isNaN(array[i]) ? "error": array[i].toPrecision(3))  
                 + "<br>");
         }
@@ -499,7 +517,7 @@
             parseInt(document.getElementById("nsteps").value));
         var shortened_x = [];
         var shortened_y = [];
-        for (i = 0; i < len; i++) {
+        for (var i = 0; i < len; i++) {
             if (i % 100 == 0) {
                 shortened_x.push(x[i]);
                 shortened_y.push(y[i]);
@@ -518,12 +536,12 @@
         var num_datasets = y_coords[0].length; // All the same length
 
         // Empty everything out first
-        for (i = 0; i < 6; i++) {
+        for (var i = 0; i < 6; i++) {
             window.chart.data.datasets[i].data = [];
         }
 
         // Populate datasets that exist
-        for (i = 0; i < num_datasets; i++) {
+        for (var i = 0; i < num_datasets; i++) {
             window.chart.data.datasets[i].data = x_coords.map((x_data, j) => ({
                 x: +x_data.toPrecision(4), y: +y_coords[j][i].toPrecision(5)}));
         }
@@ -554,7 +572,7 @@
         }
 
         var dydt = function(dydt, y, t) {
-            for (i = 0; i < num_fields; i++) {
+            for (var i = 0; i < num_fields; i++) {
                 if (i == 0 && select_indexes.includes(i + 1)) {
                     dydt[0] = k[0] * -y[0] / (a_const);
                 } else if (select_indexes.includes(i + 1)) {
@@ -588,24 +606,24 @@
     function get_headers(select_indexes) {
         var header_arr = [];
         header_arr.push("Time " + "(" + document.getElementById("time-units").value + ")");
-        for (i = 0; i < select_indexes.length; i++) {
+        for (var i = 0; i < select_indexes.length; i++) {
             var name_id = "name" + select_indexes[i];
             header_arr.push(document.getElementById(name_id).value + " (Comp " + select_indexes[i] + ")");
         }
         return header_arr;
     }
 
-    function process_array(select_indexes) {
+    function process_array_dwnld(select_indexes) {
         var x_coords = full_dataset[0];
         var y_coords = full_dataset[1];
         var result = [];
         result.push(get_headers(select_indexes));
 
-        for (i = 0; i < x_coords.length; i++) {
+        for (var i = 0; i < x_coords.length; i++) {
             result.push([(+x_coords[i].toPrecision(4)).toLocaleString("fullwide", {useGrouping: false})]);
         }
-        for (i = 0; i < y_coords.length; i++) {
-            for (j = 0; j < select_indexes.length; j++) {
+        for (var i = 0; i < y_coords.length; i++) {
+            for (var j = 0; j < select_indexes.length; j++) {
                 result[i + 1].push((+y_coords[i][select_indexes[j] - 1].toPrecision(5)).toLocaleString("fullwide",
                     {useGrouping: false}));
             }
@@ -645,7 +663,7 @@
                 var url = URL.createObjectURL(blob);
                 link.setAttribute("href", url);
                 link.setAttribute("download", filename);
-                link.style.visibility = 'hidden';
+                link.style.visibility = "hidden";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -653,51 +671,201 @@
         }
     }
 
+    function download() {
+        var select_indexes = parse_checks("dwnld_check", parseInt(document.getElementById("comps").value));
+        var rows = process_array_dwnld(select_indexes);
+        var filename = document.getElementById("filename").value ? document.getElementById("filename").value : "export";
+        exportToCsv(filename + ".csv", rows);
+    }
+
     function parseCSV(allText) {
         var allTextLines = allText.split(/\r\n|\n/);
         var headers = allTextLines[0].split(',');
         var lines = [];
 
-        for (var i=1; i<allTextLines.length; i++) {
+        for (var i = 1; i < allTextLines.length; i++) {
             var data = allTextLines[i].split(',');
             if (data.length == headers.length) {
-                var tarr = [];
-                for (var j=0; j<headers.length; j++) {
-                    tarr.push(parseFloat(data[j]));
+                var inner_arr = [];
+                for (var j = 0; j < headers.length; j++) {
+                    var point = parseFloat(data[j]);
+                    if (!isNaN(point)) { // not adding NaN lines
+                        inner_arr.push(point);
+                    }
                 }
-                lines.push(tarr);
+                lines.push(inner_arr);
             }
         }
-        console.log(headers);
-        console.log(lines);
+        return lines;
     }
 
-    function readCSV() {
+    function read_helper(reader, fileUpload) {
+        return new Promise((resolve, reject) => {
+            reader.onload = function (e) {
+            let csvdata = e.target.result;
+            resolve(parseCSV(csvdata));
+            }
+            reader.readAsText(fileUpload.files[0]);
+        })
+    }
+
+    async function readCSV() {
         var fileUpload = document.getElementById("file_csv");
-        var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
-        if (regex.test(fileUpload.value.toLowerCase())) {
-            if (typeof (FileReader) != "undefined") {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    let csvdata = e.target.result;
-                    parseCSV(csvdata);
-                }
-                reader.readAsText(fileUpload.files[0]);
-            } else {
-                alert("This browser does not support HTML5.");
-            }
-        } else {
-            alert("Please upload a valid CSV file.");
-        }
-    }
-    
-    function download() {
-        var select_indexes = parse_checks("dwnld_check", parseInt(document.getElementById("comps").value));
-        var rows = process_array(select_indexes);
-        var filename = document.getElementById("filename").value ? document.getElementById("filename").value : "export";
-        exportToCsv(filename + ".csv", rows);
+        var reader = new FileReader();
+        var parsed_data = await read_helper(reader, fileUpload);
+        return parsed_data;
     }
 
+    function parse_k_table2() {
+        var num_fields = parseInt(document.getElementById("comps2").value);
+        var bounds = [];
+        var init_array = [];
+        var k_try = [];
+
+        for (var i = 0; i < num_fields; i++) {
+            var i_bound = [];
+            if (parseFloat(document.getElementById("l_bou" + (i + 1)).value)) { // only push if not NaN
+                i_bound.push(parseFloat(document.getElementById("l_bou" + (i + 1)).value));
+                i_bound.push(parseFloat(document.getElementById("h_bou" + (i + 1)).value));
+            }
+            bounds.push(i_bound);
+            init_array.push(parseFloat(document.getElementById("i_val" + (i + 1) + "2").value));
+            k_try.push(parseFloat(document.getElementById("k_try" + (i + 1)).value));
+        }
+        return [bounds, init_array, k_try];
+    }
+
+    async function calculate_k() {
+        ktable2 = parse_k_table2();
+        num_fields2 = parseInt(document.getElementById("comps2").value);
+
+        a_const2 = 1;
+        select_indexes2 = [];
+        if (document.getElementById("massconc2").value == "Concentration") {
+            a_const2 = math.evaluate(document.getElementById("a_const").value);
+            select_indexes2 = parse_checks("checks2", num_fields2);
+        }
+        in_csv_data = await readCSV();
+        var y0 = [...ktable2[1]];
+        var k = [...ktable2[2]];
+        var dt = 90/(90*600+1); // user input?
+
+        var dydt = function(dydt, y, t) {
+            for (var i = 0; i < num_fields2; i++) {
+                if (i == 0 && select_indexes2.includes(i + 1)) {
+                    dydt[0] = k[0] * -y[0] / (a_const2);
+                } else if (select_indexes2.includes(i + 1)) {
+                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1] / (a_const2); 
+                } else if (i == 0) {
+                    dydt[0] = k[0] * -y[0];
+                } else {
+                    dydt[i] = k[i] * -y[i] + k[i - 1] * y[i - 1];
+                }
+            }
+        }
+
+        var integrator2 = new Integrator(y0, dydt, 0, dt);
+        integrator2.steps(90*600+1);
+        full_dataset2 = integrator2.y_collection;
+        /*
+        console.log(full_dataset2);
+
+        console.log(in_csv_data);
+        console.log(ktable2);
+        console.log(num_fields2);
+        */
+        pyodide.runPython(`
+            import js
+
+            in_csv_data = js.in_csv_data
+            k_table2 = js.ktable2
+            full_dataset2 = js.full_dataset2
+
+            def convert_k_table():
+                for i in range(len(k_table2[0])):
+                    if k_table2[0][i]:
+                        k_table2[0][i][0] = float(k_table2[0][i][0])
+                        k_table2[0][i][1] = float(k_table2[0][i][1])
+                k_table2[1] = [float(num) for num in k_table2[1]]
+                k_table2[2] = [float(num) for num in k_table2[2]]
+
+            convert_k_table()
+
+            def arr_to_dic(arr):
+                result = {}
+                for i in range(len(arr)):
+                    if arr[i][0] not in result and len(arr[i]) != 1:
+                        result[arr[i][0]] = [arr[i][1]]
+                    elif len(arr[i]) != 1:
+                        result[arr[i][0]].append(arr[i][1])
+                return result
+            
+            dic = arr_to_dic(in_csv_data)
+            print(dic)
+
+            def SSE(fit_dic, actual_dic):
+                SSE = 0
+                for time in fit_dic:
+                    fit_conc = fit_dic[time]
+                    for actual_value in actual_dic[time]:
+                        diff = actual_value - fit_conc
+                        SSE += math.sqrt(diff**2)
+                return SSE
+
+            def construct_time(dic):
+                total_time = 90
+                timepoints = 600
+                time_range = np.linspace(0,total_time,total_time*timepoints+1)
+                time_measured = list(dic)
+
+                time_range_list = list(time_range)
+                time_index = []  # index of the correct time points
+                for timepoint in time_measured:
+                    for index in range(len(time_range_list)):
+                        if time_range_list[index] >= timepoint:
+                            time_index.append(index)
+                            break
+                return time_measured, time_index
+
+            def make_fit_dic(solve, actual_dic):
+                returnDic = {}
+                timemeasured,timeindex = construct_time(actual_dic)
+                plas_solve = []
+                for i in range(len(solve)):
+                    plas_solve.append(solve[i][2])
+                non_normal_conc = []
+                for index in timeindex:
+                    non_normal_conc.append(plas_solve[index])
+                max_conc = max(non_normal_conc)
+                normal_conc = [x/max_conc for x in non_normal_conc]
+                for i in range(len(timeindex)):
+                    returnDic[timemeasured[i]] = normal_conc[i]
+                return returnDic
+            
+            fit = make_fit_dic(full_dataset2, dic)
+            def SSEfromK(k_table):
+                return SSE(fit, dic)
+            
+            def process_bounds(k_table2):
+                result = []
+                bounds = k_table2[0]
+                k_try = k_table2[2]
+                for i in range(len(bounds)):
+                    if bounds[i]:
+                        result.append((bounds[i][0], bounds[i][1]))
+                    else:
+                        result.append((k_try[i], k_try[i] + 0.0001))
+                return result
+            
+            print(SSEfromK(k_table2[2]))
+            bounds_tup = tuple(process_bounds(k_table2))
+            print(bounds_tup)
+
+            # print(minimize(SSEfromK, [0.09, 0.04, 0.27], bounds=((0.01,5),(0.01,5),(0.01,5))))
+            # from scipy.optimize import brute
+            # print(brute(SSEfromK, ((0.01,2),(0.01,0.4),(0.01,0.4)), Ns=7))
+    `);
+    }
     
     window.onload = function() {
         var ctx = document.getElementById("my_graph").getContext("2d");
@@ -764,17 +932,25 @@
         languagePluginLoader.then( function () {
             console.log(pyodide.runPython(`
                 import sys
+                import math
                 sys.version
             `));
             /*
-            pyodide.loadPackage(['numpy', 'scipy']).then(() => {
+            pyodide.loadPackage('numpy').then(() => {
                 pyodide.runPython('import numpy as np')
-                var arr = pyodide.runPython("np.linspace(0, 5, 10)");
-                console.log(arr[0]);
-                document.getElementById("file_csv").disabled = false;
             });
             */
-            document.getElementById("file_csv").disabled = false;
+            
+            /*
+            pyodide.loadPackage(['numpy', 'scipy']).then(() => {
+                pyodide.runPython('import numpy as np');
+                pyodide.runPython('from scipy.optimize import minimize');
+                document.getElementById("calck").disabled = false;
+            });
+            */
+            
+            //document.getElementById("calck").disabled = false;
+            
         });
     };
 </script>
