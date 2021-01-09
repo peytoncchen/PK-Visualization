@@ -881,7 +881,7 @@
         document.getElementById("finalresult").innerHTML = "Loading... can take 2-5 minutes."
         
         /* For comments of the python code as well as a configurable Jupyter Notebook check out the calc_k.py and 
-         * pk_example.ipynb in the Github folder of this project.
+         * pk_example.ipynb in the "python folder" of this project.
          */
 
         try {
@@ -931,7 +931,7 @@
                     time_measured = list(dic)
 
                     time_range_list = list(time_range)
-                    time_index = []  # index of the correct time points
+                    time_index = []
                     for timepoint in time_measured:
                         for index in range(len(time_range_list)):
                             if time_range_list[index] >= timepoint:
