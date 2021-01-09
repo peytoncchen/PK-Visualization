@@ -98,7 +98,7 @@
         <div style="padding-left: 5px;">
             <canvas style="width: 600px; height: 375px;"id="my_graph"></canvas>
             <div style="align-items: center;">
-                <p id="output"></p>
+                <p id="output" style="padding-left: 15px;"></p>
             </div>
         </div>
     </div>
@@ -158,6 +158,7 @@
                 <table style="float: left" cellspacing="10" cellpadding="10" id="kval_table2">
                 </table>
             </form>
+            <p id="finalresult" style="padding-left: 20px;"></p>
         </div>
     </div>
 
@@ -276,7 +277,9 @@
             radio_but.setAttribute("type", "radio");
             radio_but.setAttribute("name", "select")
             radio_but.setAttribute("value", (i + 1).toString());
-            if (i == 0) {radio_but.setAttribute("checked", true)}
+            if (i == 0) {
+                radio_but.setAttribute("checked", true)
+            }
             cell.appendChild(radio_but);
 
             var label = document.createElement("label");
@@ -704,14 +707,16 @@
         exportToCsv(filename + ".csv", rows);
     }
 
-    // Part 2 k-val Calc Global Variables
+    // Part 2 k-val Calc Global Variables (More global vars because pyodide needs to access them)
     var in_csv_data;
     var represents;
     var k_table2;
     var dydt2;
+    var num_fields2;
+    var a_const2;
+    var select_indexes2;
 
     // Part 2 functions
-
     function parseCSV(allText) {
         var allTextLines = allText.split(/\r\n|\n/);
         var headers = allTextLines[0].split(',');
@@ -745,6 +750,10 @@
 
     async function readCSV() {
         var fileUpload = document.getElementById("file_csv");
+        if (!fileUpload) {
+            alert("No CSV file uploaded.")
+            return [];
+        }
         var reader = new FileReader();
         var parsed_data = await read_helper(reader, fileUpload);
         return parsed_data;
@@ -764,7 +773,7 @@
             }
             bounds.push(i_bound);
             init_array.push(parseFloat(document.getElementById("i_val" + (i + 1) + "2").value));
-            if (parseFloat(document.getElementById("k_try" + (i + 1)).value)) {
+            if (parseFloat(document.getElementById("k_try" + (i + 1)).value)) { // only push if not NaN
                 k_try.push([parseFloat(document.getElementById("k_try" + (i + 1)).value), (i + 1)]);   
             }
         }
@@ -784,13 +793,22 @@
         return select_index;
     }
 
+    function process_final(array) {
+        var out_str = "<b><u>Final k-value results</u></b><br>";
+        for (var i = 0; i < array.length; i++) {
+            out_str += ("Compartment " + (i + 1) + " k-value: " + (isNaN(array[i]) ? "error": array[i].toPrecision(4))  
+                + "<br>");
+        }
+        return out_str;
+    }
+
     async function calculate_k() {
         k_table2 = parse_k_table2();
-        var num_fields2 = parseInt(document.getElementById("comps2").value);
+        num_fields2 = parseInt(document.getElementById("comps2").value);
         represents = parse_radio("select", num_fields2);
 
-        var a_const2 = 1;
-        var select_indexes2 = [];
+        a_const2 = 1;
+        select_indexes2 = [];
         if (document.getElementById("massconc2").value == "Concentration") {
             a_const2 = math.evaluate(document.getElementById("a_const").value);
             select_indexes2 = parse_checks("checks2", num_fields2);
@@ -812,6 +830,7 @@
                 }
             }
         }
+        document.getElementById("finalresult").innerHTML = "Loading... can take up to 2 minutes."
         
         pyodide.runPython(`
             import js
@@ -820,18 +839,16 @@
             js_table = js.k_table2
             dydt2 = js.dydt2
             represents = js.represents
-
-            k = [0.09, 0.04, 0.27]
-            y0 = [4000, 0, 1]
             
             def copy_array(array):
                 copy = [[],[],[]]
-                copy[0] = [[float(lst[0]), float(lst[1])] if lst else [] for lst in array[0]]
-                copy[1] = [float(num) for num in array[1]]
-                copy[2] = [float(num) for num in array[2]]
+                copy[0] = [[lst[0], lst[1]] if lst else [] for lst in array[0]]
+                copy[1] = [num for num in array[1]]
+                copy[2] = [num for num in array[2]]
                 return copy
             
             k_table2 = copy_array(js_table)
+            print(k_table2)
 
             def arr_to_dic(arr):
                 result = {}
@@ -855,8 +872,7 @@
                 return SSE
 
             total_time = max(list(dic))
-            timepoints = 300
-            dt = total_time/(total_time*timepoints+1)
+            timepoints = 100
 
             def construct_time(dic):
                 time_range = np.linspace(0,total_time,total_time*timepoints+1)
@@ -870,6 +886,8 @@
                             time_index.append(index)
                             break
                 return time_measured, time_index
+
+            print(represents)
 
             def make_fit_dic(solve, actual_dic):
                 returnDic = {}
@@ -885,16 +903,23 @@
                 for i in range(len(timeindex)):
                     returnDic[timemeasured[i]] = normal_conc[i]
                 return returnDic
-            
+
+            y0 = k_table2[1][:]
+            k = []
+            dt = total_time/(total_time*timepoints+1)
+
             def SSEfromK(ks):
+                global k 
                 k = ks
-                if k_table[2]:
-                    for i in range(len(k_table[2])):
-                        entry = k_table[2][i]
-                        k[entry[1]] = entry[0]
+                if k_table2[2]:
+                    for i in range(len(k_table2[2])):
+                        entry = k_table2[2][i]
+                        k[entry[1] - 1] = entry[0]
+                
                 integrator = js.Integrator.new(y0, dydt2, 0, dt)
                 integrator.steps(total_time*timepoints+1)
                 full_dataset2 = integrator.y_collection
+
                 fit = make_fit_dic(full_dataset2, dic)
                 return SSE(fit, dic)
             
@@ -911,14 +936,13 @@
                         index_k_try += 1
                 return tuple(result)
             
-            # print(SSEfromK(k))
+            print(SSEfromK([0.09, 0.04, 0.27]))
             bounds_tup = tuple(process_bounds(k_table2))
-            print(bounds_tup)
 
-            # print(minimize(SSEfromK, [0.09, 0.04, 0.27], bounds=((0.01,5),(0.01,5),(0.01,5))))
-            from scipy.optimize import brute
-            print(brute(SSEfromK, ((0.01,2),(0.01,0.4),(0.01,0.4)), Ns=5))
+            final_result = list(brute(SSEfromK, bounds_tup, Ns=2))
+            print(final_result)
     `);
+        document.getElementById("finalresult").innerHTML = process_final(pyodide.globals.final_result);
     }
     
     window.onload = function() {
@@ -989,21 +1013,11 @@
                 import math
                 sys.version
             `));
-            /*
-            pyodide.loadPackage('numpy').then(() => {
-                pyodide.runPython('import numpy as np')
-            });
-            */
-            
-            
-            
             pyodide.loadPackage(['numpy', 'scipy']).then(() => {
                 pyodide.runPython('import numpy as np');
+                pyodide.runPython('from scipy.optimize import brute');
                 document.getElementById("calck").disabled = false;
             });
-            
-            
-            document.getElementById("calck").disabled = false;
             
         });
     };
