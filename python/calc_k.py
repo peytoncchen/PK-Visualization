@@ -91,14 +91,14 @@ def make_fit_dic(solve, actual_dic):
     timemeasured,timeindex = construct_time(actual_dic)
     plas_solve = []
     for i in range(len(solve)):
-        plas_solve.append(solve[i][represents - 1])
-    non_normal_conc = []
+        plas_solve.append(solve[i][represents - 1]) # Only data for the compartment CSV data represents
+    non_normal_conc = [] 
     for index in timeindex:
         non_normal_conc.append(plas_solve[index])
     max_conc = max(non_normal_conc)
-    normal_conc = [x/max_conc for x in non_normal_conc]
+    normal_conc = [x/max_conc for x in non_normal_conc] # Normalize
     for i in range(len(timeindex)):
-        returnDic[timemeasured[i]] = normal_conc[i]
+        returnDic[timemeasured[i]] = normal_conc[i] # Populate the return dictionary
     return returnDic
 
 ### Global variables for our Integrator
@@ -107,8 +107,9 @@ k = []
 dt = total_time/(total_time*timepoints+1)
 ###
 
+# From the given k, integrates with the same 4th order Runge-Kutta method and returns the SSE value.
 def SSEfromK(ks):
-    global k 
+    global k # Accesses global variable k
     k = ks
     if k_table2[2]:
         for i in range(len(k_table2[2])):
@@ -122,6 +123,8 @@ def SSEfromK(ks):
     fit = make_fit_dic(full_dataset2, dic)
     return SSE(fit, dic)
 
+# Given the k_table array processes the array and returns a tuple of the ranges we want to brute for
+# each k-value.
 def process_bounds(array):
     result = []
     bounds = array[0]
