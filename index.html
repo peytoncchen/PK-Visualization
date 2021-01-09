@@ -29,7 +29,7 @@
         <div>
             <form id=inputform>
                 <table cellspacing="10" cellpadding="10" id="input_table">
-                    <tr id="row1">
+                    <tr>
                         <td>
                             <label for="comps">Number of Compartments</label>
                         </td>
@@ -44,7 +44,7 @@
                             </select>
                         </td>
                     </tr>
-                    <tr id="row2">
+                    <tr>
                         <td>
                             <label for="kvalues">Compartment Info</label>
                         </td>
@@ -53,7 +53,7 @@
                             </table>
                         </td>
                     </tr>
-                    <tr id="row3">
+                    <tr>
                         <td>
                             <label for="timerange">Time Range and Units</label>
                         </td>
@@ -62,7 +62,7 @@
                             <input id="time-units" value="minutes" onchange="reset_output()" style="width: 70px">
                         </td>
                     </tr>
-                    <tr id="row4">
+                    <tr>
                         <td>
                             <label for="nsteps">Number of steps</label>
                         </td>
@@ -70,7 +70,7 @@
                             <input type="number" id="nsteps" value="100000" onchange="reset_output()" style="width: 70px">
                         </td>
                     </tr>
-                    <tr id="row5">
+                    <tr>
                         <td>
                             <label for="massconc">Mass or Concentration</label>
                         </td>
@@ -106,7 +106,7 @@
         <hr class="solid">
         <h2 style="padding-top: 10px;">k-value Calculator</h2>
         <div style="margin: auto;">
-            <form id=inputform2>
+            <form id="inputform2">
                 <table style="float: left;" cellspacing="10" cellpadding="10" id="input_table2">
                     <tr>
                         <td>
@@ -163,12 +163,17 @@
     </div>
 
 <script>
+
+    /* On change of number of compartments, this function will create the needed input components depending on
+     * whether the change is detected in the part 1 calculator or part 2 calculator.
+     */
     function gen_k_fields(comps, k_table, conc) {
         var num_fields = parseInt(document.getElementById(comps).value);
         var table = document.getElementById(k_table);
+
         // reset innerHTML
         if (k_table == "kval_table") {
-            table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
+            table.innerHTML = "<tr>\n<th>Number</th>\n<th>Name (optional)</th>\n<th>Initial value</th>\n<th>k-value</th></tr>";
         } else {
             table.innerHTML = `<tr>\n<th>Compartment</th>\n<th>Low Bound</th>\n<th>High Bound</th>\n<th>Initial value
                 </th><th>Constrain</th><th>k-value</th></tr>`;
@@ -269,6 +274,7 @@
         }
     }
 
+    // For part 2, generates radio buttons for user to select which compartment their CSV data represents.
     function gen_sel_data(num_fields) {
         var cell = document.getElementById("calck_cell");
         cell.innerHTML = "";
@@ -293,6 +299,9 @@
         }
     }
 
+    /* Creates a group of check boxes for a variety of different functions including animal model constant selection
+     * for both parts and download compartment selection for part 1.
+     */
     function create_checks(div, class_nm, tb_row, cell_input, comps) {
         var num_fields = parseInt(document.getElementById(comps).value);
         for (var i = 0; i < num_fields; i++) {
@@ -315,6 +324,9 @@
         cell_input.appendChild(div);
     }
 
+    /* Creates concentration input field for both a concentration constant and compartment selection to modify with
+     * the concentration constant.
+     */
     function gen_conc_field(option, inp_table, row, comps) {
         if (document.getElementById(option).value == "Concentration") {
             var row = document.getElementById(inp_table).insertRow(row);
@@ -343,6 +355,9 @@
         }
     }
 
+    /* Depending on whether constrain box is checked, toggles whether bounds or k-value inputs are open or 
+     * disabled.
+     */
     function bou_off() {
         var num_fields = parseInt(document.getElementById("comps2").value);
         var indexes = parse_checks("constrain", num_fields)
@@ -366,6 +381,9 @@
         
     }
 
+    /* For part 1 resets output by clearing graph datasets and resetting all generated output and enabling/disabling
+     * necessary buttons and input fields.
+     */
     function reset_output() {
         document.getElementById("dwnld").disabled = true;
         document.getElementById("select_dwnld").innerHTML = "";
@@ -439,12 +457,13 @@
 </script>
 
 <script>
-    // Part 1 PK Data Modeling Global Variables
+    /* --------------------- Part 1 PK Data Modeling Global Variables --------------------- */
     var integrator;
     var full_dataset;
 
-    // Part 1 functions
+    /* --------------------------------- Part 1 functions --------------------------------- */
 
+    // Parses and returns an array representation of the k-value table labeled "Compartment Info".
     function parse_k_table() {
         var k_array = [];
         var init_array = [];
@@ -457,6 +476,7 @@
         return [k_array, init_array];
     }
 
+    // Parses and returns time range, the units of the time range and the number of steps.
     function parse_time_nsteps() {
         var time = parseFloat(document.getElementById("timerange").value);
         var t_units = document.getElementById("time-units").value
@@ -464,6 +484,7 @@
         return [time, nsteps, t_units];
     }
 
+    // Parses and returns array selected indexes given a class of check boxes.
     function parse_checks(class_nm, num_fields) {
         var checks = document.getElementsByClassName(class_nm);
         var select_indexes = [];
@@ -476,16 +497,18 @@
         return select_indexes;
     }
 
+    // Given array result and time range and units information, parses and returns an HTML string.
     function process_out(array, time, t_units) {
         var out_str = "<b><u>Final Results at " + time + " " + t_units + "</u></b><br>";
         for (var i = 0; i < array.length; i++) {
-            out_str += ("Compartment " + (i + 1) + ": " + (isNaN(array[i]) ? "error": array[i].toPrecision(3))  
+            out_str += ("Compartment " + (i + 1) + ": " + (isNaN(array[i]) ? "error": array[i].toPrecision(4))  
                 + "<br>");
         }
         return out_str;
     }
     
-    var colors = ["#70B9B5", "#EB8138", "#6E6CC0", "#E64445", "#8E99A0", "#38A9C7"]
+    // Global variables for the chart in part 1
+    var colors = ["#70B9B5", "#EB8138", "#6E6CC0", "#E64445", "#8E99A0", "#38A9C7"] // These colors are the bomb
     var chart_data = {
         datasets: [
             {
@@ -540,6 +563,9 @@
 
     };
 
+    /* Takes in y (and makes x by itself with linspace from numeric) and produces a shortened version of the
+     * resulting arrays for easier load on the export tool. It will take the number of entries and divide by 100.
+     */
     function shorten_out(y) {
         const len = y.length;
         var x = numeric.linspace(0, parseFloat(document.getElementById("timerange").value), 
@@ -555,6 +581,7 @@
         return [shortened_x, shortened_y];
     }
 
+    // Graphs data processed and set to global variables onto the chart for part 1.
     function graph() {
         var shortened_arr = shorten_out(integrator.y_collection);
         var x_coords = shortened_arr[0];
@@ -575,12 +602,14 @@
                 x: +x_data.toPrecision(4), y: +y_coords[j][i].toPrecision(5)}));
         }
 
-        // console.log(window.chart.data.datasets);
         window.chart.update();
         return [x_coords, y_coords];
 
     }
 
+    /* Calls all the parsing functions and integrates the set of differential equations. Will also call the graph function
+     * to graph everything and set the output to the appropriate values.
+     */
     function ode() {
         var ktable = parse_k_table();
         var time_nsteps = parse_time_nsteps();
@@ -632,6 +661,7 @@
         document.getElementById("calcgraph").disabled = true;
     }
 
+    // Gets the names of the compartments if they exist and returns them in an array to be used for headers in the exported CSV.
     function get_headers(select_indexes) {
         var header_arr = [];
         header_arr.push("Time " + "(" + document.getElementById("time-units").value + ")");
@@ -642,6 +672,7 @@
         return header_arr;
     }
 
+    // Processes and parses full_dataset modified by integrator in ode() to be exported to CSV.
     function process_array_dwnld(select_indexes) {
         var x_coords = full_dataset[0];
         var y_coords = full_dataset[1];
@@ -660,7 +691,8 @@
         return result;
     }
 
-    function exportToCsv(filename, rows) {
+    // Export an array to CSV format to the user's download location.
+    function export_to_csv(filename, rows) {
         var processRow = function(row) {
             var finalVal = '';
             for (var j = 0; j < row.length; j++) {
@@ -700,14 +732,15 @@
         }
     }
 
+    // Download helper that is called during ode() routine.
     function download() {
         var select_indexes = parse_checks("dwnld_check", parseInt(document.getElementById("comps").value));
         var rows = process_array_dwnld(select_indexes);
         var filename = document.getElementById("filename").value ? document.getElementById("filename").value : "export";
-        exportToCsv(filename + ".csv", rows);
+        export_to_csv(filename + ".csv", rows);
     }
 
-    // Part 2 k-val Calc Global Variables (More global vars because pyodide needs to access them)
+    /*  -- Part 2 k-val Calc Global Variables (More global vars because pyodide needs to access them) -- */
     var in_csv_data;
     var represents;
     var k_table2;
@@ -716,8 +749,10 @@
     var a_const2;
     var select_indexes2;
 
-    // Part 2 functions
-    function parseCSV(allText) {
+    /* --------------------------------- Part 2 functions --------------------------------- */
+
+    // Given text format of inputted CSV file processes it and returns an array.
+    function parse_csv(allText) {
         var allTextLines = allText.split(/\r\n|\n/);
         var headers = allTextLines[0].split(',');
         var lines = [];
@@ -738,27 +773,30 @@
         return lines;
     }
 
-    function read_helper(reader, fileUpload) {
+    // Read csv helper that will return a Promise once the csv file is read.
+    function read_helper(reader, file_upload) {
         return new Promise((resolve, reject) => {
             reader.onload = function (e) {
             let csvdata = e.target.result;
-            resolve(parseCSV(csvdata));
+            resolve(parse_csv(csvdata));
             }
-            reader.readAsText(fileUpload.files[0]);
+            reader.readAsText(file_upload.files[0]);
         })
     }
 
-    async function readCSV() {
-        var fileUpload = document.getElementById("file_csv");
-        if (!fileUpload) {
+    // Async function that will read the csv, process it and return the parsed data in the form of a js array.
+    async function read_csv() {
+        var file_upload = document.getElementById("file_csv");
+        if (!file_upload) {
             alert("No CSV file uploaded.")
             return [];
         }
         var reader = new FileReader();
-        var parsed_data = await read_helper(reader, fileUpload);
+        var parsed_data = await read_helper(reader, file_upload);
         return parsed_data;
     }
 
+    // Parses the second k_table from part 2 and returns an array representation of the user inputted data.
     function parse_k_table2() {
         var num_fields = parseInt(document.getElementById("comps2").value);
         var bounds = [];
@@ -780,6 +818,7 @@
         return [bounds, init_array, k_try];
     }
 
+    // Parses a group of radio buttons grouped by name and returns the selected index.
     function parse_radio(name, num_fields) {
         var radio = document.getElementsByName(name);
         var select_index;
@@ -793,6 +832,7 @@
         return select_index;
     }
 
+    // Processes the final k-value result and outputs an HTML string to be displayed on screen.
     function process_final(array) {
         var out_str = "<b><u>Final k-value results</u></b><br>";
         for (var i = 0; i < array.length; i++) {
@@ -802,6 +842,10 @@
         return out_str;
     }
 
+    /* Calls all the parsing functions and with all the appropriate data generated, calls pyodide.runPython which will run
+     * a python script to brute force determine the k-values. Outputs any errors through alerts and successful results on screen.
+     * This function can take 2-5 minutes to run depending on inputs. Also note that there is heavy RAM usage.
+     */
     async function calculate_k() {
         k_table2 = parse_k_table2();
         num_fields2 = parseInt(document.getElementById("comps2").value);
@@ -813,9 +857,12 @@
             a_const2 = math.evaluate(document.getElementById("a_const").value);
             select_indexes2 = parse_checks("checks2", num_fields2);
         }
-        in_csv_data = await readCSV();
-
-
+        try {
+            in_csv_data = await read_csv();
+        } catch (err) {
+            alert("CSV data was unable to be read.")
+            return;
+        }
         dydt2 = function(dydt2, y, t) {
             let k = pyodide.globals.k
             for (var i = 0; i < num_fields2; i++) {
@@ -830,121 +877,132 @@
                 }
             }
         }
-        document.getElementById("finalresult").innerHTML = "Loading... can take up to 2 minutes."
+
+        document.getElementById("finalresult").innerHTML = "Loading... can take 2-5 minutes."
         
-        pyodide.runPython(`
-            import js
+        /* For comments of the python code as well as a configurable Jupyter Notebook check out the calc_k.py and 
+         * pk_example.ipynb in the Github folder of this project.
+         */
 
-            in_csv_data = js.in_csv_data
-            js_table = js.k_table2
-            dydt2 = js.dydt2
-            represents = js.represents
-            
-            def copy_array(array):
-                copy = [[],[],[]]
-                copy[0] = [[lst[0], lst[1]] if lst else [] for lst in array[0]]
-                copy[1] = [num for num in array[1]]
-                copy[2] = [num for num in array[2]]
-                return copy
-            
-            k_table2 = copy_array(js_table)
-            print(k_table2)
+        try {
+            pyodide.runPython(`
+                import js
 
-            def arr_to_dic(arr):
-                result = {}
-                for i in range(len(arr)):
-                    if arr[i][0] not in result and len(arr[i]) != 1:
-                        result[arr[i][0]] = [arr[i][1]]
-                    elif len(arr[i]) != 1:
-                        result[arr[i][0]].append(arr[i][1])
-                return result
-            
-            dic = arr_to_dic(in_csv_data)
-            print(dic)
-
-            def SSE(fit_dic, actual_dic):
-                SSE = 0
-                for time in fit_dic:
-                    fit_conc = fit_dic[time]
-                    for actual_value in actual_dic[time]:
-                        diff = actual_value - fit_conc
-                        SSE += math.sqrt(diff**2)
-                return SSE
-
-            total_time = max(list(dic))
-            timepoints = 100
-
-            def construct_time(dic):
-                time_range = np.linspace(0,total_time,total_time*timepoints+1)
-                time_measured = list(dic)
-
-                time_range_list = list(time_range)
-                time_index = []  # index of the correct time points
-                for timepoint in time_measured:
-                    for index in range(len(time_range_list)):
-                        if time_range_list[index] >= timepoint:
-                            time_index.append(index)
-                            break
-                return time_measured, time_index
-
-            print(represents)
-
-            def make_fit_dic(solve, actual_dic):
-                returnDic = {}
-                timemeasured,timeindex = construct_time(actual_dic)
-                plas_solve = []
-                for i in range(len(solve)):
-                    plas_solve.append(solve[i][represents - 1])
-                non_normal_conc = []
-                for index in timeindex:
-                    non_normal_conc.append(plas_solve[index])
-                max_conc = max(non_normal_conc)
-                normal_conc = [x/max_conc for x in non_normal_conc]
-                for i in range(len(timeindex)):
-                    returnDic[timemeasured[i]] = normal_conc[i]
-                return returnDic
-
-            y0 = k_table2[1][:]
-            k = []
-            dt = total_time/(total_time*timepoints+1)
-
-            def SSEfromK(ks):
-                global k 
-                k = ks
-                if k_table2[2]:
-                    for i in range(len(k_table2[2])):
-                        entry = k_table2[2][i]
-                        k[entry[1] - 1] = entry[0]
+                in_csv_data = js.in_csv_data
+                js_table = js.k_table2
+                dydt2 = js.dydt2
+                represents = js.represents
                 
-                integrator = js.Integrator.new(y0, dydt2, 0, dt)
-                integrator.steps(total_time*timepoints+1)
-                full_dataset2 = integrator.y_collection
+                def copy_array(array):
+                    copy = [[],[],[]]
+                    copy[0] = [[lst[0], lst[1]] if lst else [] for lst in array[0]]
+                    copy[1] = [num for num in array[1]]
+                    copy[2] = [num for num in array[2]]
+                    return copy
+                
+                k_table2 = copy_array(js_table)
 
-                fit = make_fit_dic(full_dataset2, dic)
-                return SSE(fit, dic)
-            
-            def process_bounds(array):
-                result = []
-                bounds = array[0]
-                k_try = array[2]
-                index_k_try = 0
-                for i in range(len(bounds)):
-                    if bounds[i]:
-                        result.append((bounds[i][0], bounds[i][1]))
-                    else:
-                        result.append((k_try[index_k_try][0], k_try[index_k_try][0]))
-                        index_k_try += 1
-                return tuple(result)
-            
-            print(SSEfromK([0.09, 0.04, 0.27]))
-            bounds_tup = tuple(process_bounds(k_table2))
+                def arr_to_dic(arr):
+                    result = {}
+                    for i in range(len(arr)):
+                        if arr[i][0] not in result and len(arr[i]) != 1:
+                            result[arr[i][0]] = [arr[i][1]]
+                        elif len(arr[i]) != 1:
+                            result[arr[i][0]].append(arr[i][1])
+                    return result
+                
+                dic = arr_to_dic(in_csv_data)
+                print(dic)
 
-            final_result = list(brute(SSEfromK, bounds_tup, Ns=2))
-            print(final_result)
-    `);
+                def SSE(fit_dic, actual_dic):
+                    SSE = 0
+                    for time in fit_dic:
+                        fit_conc = fit_dic[time]
+                        for actual_value in actual_dic[time]:
+                            diff = actual_value - fit_conc
+                            SSE += math.sqrt(diff**2)
+                    return SSE
+
+                total_time = max(list(dic))
+                timepoints = 100
+
+                def construct_time(dic):
+                    time_range = np.linspace(0,total_time,total_time*timepoints+1)
+                    time_measured = list(dic)
+
+                    time_range_list = list(time_range)
+                    time_index = []  # index of the correct time points
+                    for timepoint in time_measured:
+                        for index in range(len(time_range_list)):
+                            if time_range_list[index] >= timepoint:
+                                time_index.append(index)
+                                break
+                    return time_measured, time_index
+
+                def make_fit_dic(solve, actual_dic):
+                    returnDic = {}
+                    timemeasured,timeindex = construct_time(actual_dic)
+                    plas_solve = []
+                    for i in range(len(solve)):
+                        plas_solve.append(solve[i][represents - 1])
+                    non_normal_conc = []
+                    for index in timeindex:
+                        non_normal_conc.append(plas_solve[index])
+                    max_conc = max(non_normal_conc)
+                    normal_conc = [x/max_conc for x in non_normal_conc]
+                    for i in range(len(timeindex)):
+                        returnDic[timemeasured[i]] = normal_conc[i]
+                    return returnDic
+
+                y0 = k_table2[1][:]
+                k = []
+                dt = total_time/(total_time*timepoints+1)
+
+                def SSEfromK(ks):
+                    global k 
+                    k = ks
+                    if k_table2[2]:
+                        for i in range(len(k_table2[2])):
+                            entry = k_table2[2][i]
+                            k[entry[1] - 1] = entry[0]
+                    
+                    integrator = js.Integrator.new(y0, dydt2, 0, dt)
+                    integrator.steps(total_time*timepoints+1)
+                    full_dataset2 = integrator.y_collection
+
+                    fit = make_fit_dic(full_dataset2, dic)
+                    return SSE(fit, dic)
+                
+                def process_bounds(array):
+                    result = []
+                    bounds = array[0]
+                    k_try = array[2]
+                    index_k_try = 0
+                    for i in range(len(bounds)):
+                        if bounds[i]:
+                            result.append((bounds[i][0], bounds[i][1]))
+                        else:
+                            result.append((k_try[index_k_try][0], k_try[index_k_try][0]))
+                            index_k_try += 1
+                    return tuple(result)
+                
+                bounds_tup = tuple(process_bounds(k_table2))
+
+                final_result = list(brute(SSEfromK, bounds_tup, Ns=2))
+                print(final_result)
+        `)
+        } catch (err) {
+            document.getElementById("finalresult").innerHTML = "There was an error in calculating k-values.";
+            alert("There was an error in calculating k-values. Consider refreshing the page and trying again.");
+            return;
+        }
         document.getElementById("finalresult").innerHTML = process_final(pyodide.globals.final_result);
     }
     
+    /* All the things that needs to happen onload including generating appropriate input fields, starting pyodide and 
+     * importing all the packages, as well as initializing and configuring the graph for part 2.
+     */
+
     window.onload = function() {
         var ctx = document.getElementById("my_graph").getContext("2d");
         window.chart = new Chart(ctx, {
@@ -1006,7 +1064,7 @@
             },
         })
         gen_k_fields("comps", "kval_table", "massconc"); // Default value is 1
-        gen_k_fields("comps2", "kval_table2", "massconc2")
+        gen_k_fields("comps2", "kval_table2", "massconc2") // Default value also 1
         languagePluginLoader.then( function () {
             console.log(pyodide.runPython(`
                 import sys
@@ -1016,7 +1074,7 @@
             pyodide.loadPackage(['numpy', 'scipy']).then(() => {
                 pyodide.runPython('import numpy as np');
                 pyodide.runPython('from scipy.optimize import brute');
-                document.getElementById("calck").disabled = false;
+                document.getElementById("calck").disabled = false; // Button is disabled until everything has loaded.
             });
             
         });
