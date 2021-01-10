@@ -27,7 +27,7 @@
 
     <div style="display: flex">
         <div>
-            <form id=inputform>
+            <form id="inputform">
                 <table cellspacing="10" cellpadding="10" id="input_table">
                     <tr>
                         <td>
@@ -942,16 +942,16 @@
                 def make_fit_dic(solve, actual_dic):
                     returnDic = {}
                     timemeasured,timeindex = construct_time(actual_dic)
-                    plas_solve = []
+                    need_solve = []
                     for i in range(len(solve)):
-                        plas_solve.append(solve[i][represents - 1])
-                    non_normal_conc = []
+                        need_solve.append(solve[i][represents - 1]) # Only data for the compartment CSV data represents
+                    non_normal_conc = [] 
                     for index in timeindex:
-                        non_normal_conc.append(plas_solve[index])
+                        non_normal_conc.append(need_solve[index])
                     max_conc = max(non_normal_conc)
-                    normal_conc = [x/max_conc for x in non_normal_conc]
+                    normal_conc = [x/max_conc for x in non_normal_conc] # Normalize
                     for i in range(len(timeindex)):
-                        returnDic[timemeasured[i]] = normal_conc[i]
+                        returnDic[timemeasured[i]] = normal_conc[i] # Populate the return dictionary
                     return returnDic
 
                 y0 = k_table2[1][:]
