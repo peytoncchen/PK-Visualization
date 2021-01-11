@@ -13,9 +13,10 @@ It should also be noted that supporting files for this application including a c
 
 ## Table of Contents
 - [Installation](#installation)
-- [Compartment Model Example](#compartment-model-example)
+- [Compartment Model Example](#compartment-model-and-differential-equations-example)
 - [Part 1](#part-1)
 - [Part 2](#part-2)
+- [Methodologies](#methodologies)
 
 ###Installation
 This application can be run in multiple ways.
@@ -34,8 +35,10 @@ git clone https://github.com/peytoncchen/PK-Visualization
 - Or: download the source code into a zip file from the green button labelled 'Code'
 - Click on ```index.html``` and the application will run in your default browser.
 
-## Compartment Model Example
-<img src="examples/cpm.png" width="700">
+## Compartment Model and Differential Equations Example
+<p align="center">
+<img src="examples/cpm.png" width="800">
+</p>
 This compartment model will be utilized as an example when explaining the features of the application below.
 Each compartment starts with an initial mass and with the exception of the first compartment, have flow in and out of the compartment. The flow is dictated by the rates labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in this example picture. Your model may have more or less compartments.
 
@@ -46,7 +49,9 @@ The differential equations used in the calculator, resemble the following, where
 
 
 ## Part 1
-<img src="examples/part1.png" width="700">
+<p align="center">
+<img src="examples/part1.png" width="800">
+</p>
 The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and then solve and plot the analyte profiles in each compartment over time. 
 
 ##### Inputs:
@@ -58,8 +63,22 @@ The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set 
     - Specify 0 to what time you would like to generate data from and the associated units. Default is 250 minutes.
 - Number of steps:
     - Specify the number of steps that you would like the integrator to take. Default is 100,000. **Warning:** too many steps will result in a lot of RAM usage and may take a long time.
+- Mass or concentration:
+    - Specify whether you want the y-values generated to be in mass or concentration. If concentration, another row will appear called the "Animal Model Constant" prompting you to fill out a constant and select which compartments you want it to affect. You are allowed to put in mathematical expressions or numbers here.
+
+Finally, you can press the "Calculate & Graph" button which will calculate and store all the results as well as graph it. By clicking on the legend, you are able to enable and disable plotting of different compartments' datasets. If anything failed, it will display an error. This means that either your inputs were not of the correct type or they were impossible. Note, large k-values are known to cause errors as we are using a 4th order Runge-Kutta ODE solver. See [methodologies](#methodologies) for more information.
+
+The download field will also enable at this point. You can input a filename (default is export) and select which compartment(s) you want to export to a CSV file. This file will download at your default download location. 
 
 ## Part 2
+<p align="center">
+<img src="examples/part1.png" width="800">
+</p>
+The k-value Calculator allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and input a CSV containing experimental data, then have an optimizing algorithm run to fit the data to a set of k-values. 
+
+
+
+## Methodologies
 
 
 ## Built With
