@@ -35,13 +35,29 @@ git clone https://github.com/peytoncchen/PK-Visualization
 - Click on ```index.html``` and the application will run in your default browser.
 
 ## Compartment Model Example
-<img src="examples/cpm.png" width="450">
+<img src="examples/cpm.png" width="700">
 This compartment model will be utilized as an example when explaining the features of the application below.
 Each compartment starts with an initial mass and with the exception of the first compartment, have flow in and out of the compartment. The flow is dictated by the rates labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in this example picture. Your model may have more or less compartments.
 
+The differential equations used in the calculator, resemble the following, where each compartment's derivative is modified by the incoming mass and outgoing mass, where *X* represents the mass of a compartment.
+<p align="center">
+<img src="examples/diffeq.png">
+</p>
+
 
 ## Part 1
+<img src="examples/part1.png" width="700">
 The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and then solve and plot the analyte profiles in each compartment over time. 
+
+##### Inputs:
+- Number of compartments:
+    - The number of compartments you have in your model. The compartment model example above has 3 (three) compartments.
+- Compartment info:
+    - For each compartment, you will have the option to name it (this will show up in the downloaded CSV), and be prompted to enter intial values and k-values. The k-value input field in row 1 represents the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example), k-value in row 2 represents the k-value from Compartment 2 to 3 (k<sub>2</sub> in the compartment model example) and so on.
+- Time range and units:
+    - Specify 0 to what time you would like to generate data from and the associated units. Default is 250 minutes.
+- Number of steps:
+    - Specify the number of steps that you would like the integrator to take. Default is 100,000. **Warning:** too many steps will result in a lot of RAM usage and may take a long time.
 
 ## Part 2
 
