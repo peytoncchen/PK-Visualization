@@ -57,7 +57,7 @@ The differential equations used in the calculator, resemble the following, where
 The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and then solve and plot the analyte profiles in each compartment over time. 
 
 ### Inputs:
-- **Number of compartments:**
+- **Number of Compartments:**
     - The number of compartments you have in your model. The compartment model example above has 3 (three) compartments.
 - **Compartment info:**
     - For each compartment, you will have the option to name it (this will show up in the downloaded CSV), and be prompted to enter intial values and k-values. The k-value input field in row 1 represents the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example), k-value in row 2 represents the k-value from Compartment 2 to 3 (k<sub>2</sub> in the compartment model example) and so on.
@@ -70,7 +70,7 @@ The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set 
 
 Finally, you can press the **Calculate & Graph** button which will calculate and store all the results as well as graph it. By clicking on the legend, you are able to enable and disable plotting of different compartments' datasets. If anything failed, it will display an error. This means that either your inputs were not of the correct type or they were impossible. Note, large k-values are known to cause errors as we are using a 4th order Runge-Kutta ODE solver. See [methodologies](#methodologies) for more information.
 
-The download field will also enable at this point. You can input a filename (default is export) and select which compartment(s) you want to export to a CSV file. This file will download at your default download location. An example of what will download can be seen [here](examples/mydata.csv)
+The download field will also enable at this point. You can input a filename (default is export) and select which compartment(s) you want to export to a CSV file. This file will download at your default download location. An example of what will download can be seen [here.](examples/mydata.csv)
 
 ## Part 2
 <p align="center">
@@ -80,16 +80,29 @@ The k-value Calculator allows users to set up a system of ordinary differential 
 
 ### Inputs:
 - **Choose CSV File to upload:**
-    - Clicking this field will bring up an input dialog for you to upload a CSV. Please follow the format of the CSV [here](examples/myinput.csv). Essentially, you will want the first row to be headers, your first column to be time, and your second column to be the dependent variable. Any additional columns are not supported currently and will produce errors.
+    - Clicking this field will bring up an input dialog for you to upload a CSV. Please follow the format of the CSV [here](examples/myinput.csv). Essentially, you will want the first row to be headers, your first column to be time, and your second column to be the dependent variable. Any additional columns are not supported currently and will produce errors. Please ensure that you delete any data that you do not want to consider any entry (time, value) that is missing either value will just result in the entire row being ignored.
+- **Number of Compartments, Mass or Concentration, Animal Model Constant**
+    - Same as part 1
+- **CSV data represents**
+    - Please input what compartment your CSV data represents. In the example case, our data represented Compartment 3.
+- **Compartment Info**
+    - Please indicate the bounds for k-values that you are unsure of and the initial value that the compartment starts off at. If you do know the value, please tick the "Constrain" box and fill in what the k-value is for that compartment. 
 
-
+Finally, you can press the **Calculate k-values** which will parse your inputs and return final k-value results for each compartment. For specifics as to how this is done check-out the Python files which the code from this app is based on and the [methodologies](#methodologies) section below. There is also an example Jupyter Notebook that can be customized to your specific situation. The link to that repository is [here.](https://github.com/peytoncchen/PK-Py)
 
 ## Methodologies
+Below is a quick summary of the math that runs behind the scenes.
+### Ordinary Differential Equation (ODE) solver
+We have adapted a module from Ricky Reusser (2015) for use in this web application. The code integrates a system of ODEs using the Fourth Order Runge-Kutta method. More information as well as formulas that the code is based on can be viewed [here.](https://github.com/scijs/ode-rk4)
+
+### Optimization Algorithm and set-up
+For commented Python code (and a customizable Jupyter Notebook!), visit [here.](https://github.com/peytoncchen/PK-Py/blob/master/calc_k.py)
+Apart from retrieving and parsing the inputs, the core of the algorithm is handed over to pyodide and Python code to deliver the final result. First, the CSV data array is converted into a dictionary that we can manipulate with time as the keys. That dictionary is then matched to a fit dictionary that is normalized. Then, the sum of squared errors (SSE) between the two dictionaries are minimized through scipy's optimize.brute function, which returns an array one for each compartment in your model.
 
 
 ## Built With
 - HTML/CSS/JS
-- pyodide (which allowed us to run Python in the browser) and the Python packages scipy and numpy
+- pyodide (which allowed us to run Python in the browser) and the Python packages scipy and numpy (go WebAssembly!)
 
 ## Feedback/Development
 The code for this application is open source and can be downloaded and modified as you wish.
