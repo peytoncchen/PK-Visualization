@@ -11,13 +11,13 @@ This application is designed to aid researchers who are currently developing and
 #### Python Files and Jupyter Notebook
 It should also be noted that supporting files for this application including a commented version of the Python code in this web application and a sample Jupyter Notebook for download that mimics the functionality of this application (allowing for greater end-user customizability) is available [here.](https://github.com/peytoncchen/PK-Py)
 
-### Table of Contents
+## Table of Contents
 - [Installation](#installation)
 - [Compartment Model Example](#compartment-model-example)
 - [Part 1](#part-1)
 - [Part 2](#part-2)
 
-### Installation
+###Installation
 This application can be run in multiple ways.
 
 #### Github Pages
@@ -34,33 +34,32 @@ git clone https://github.com/peytoncchen/PK-Visualization
 - Or: download the source code into a zip file from the green button labelled 'Code'
 - Click on ```index.html``` and the application will run in your default browser.
 
-### Compartment Model Example
+## Compartment Model Example
 <img src="examples/cpm.png" width="450">
 This compartment model will be utilized as an example when explaining the features of the application below.
 Each compartment starts with an initial mass and with the exception of the first compartment, have flow in and out of the compartment. The flow is dictated by the rates labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in this example picture. Your model may have more or less compartments.
 
 
-### Part 1
+## Part 1
 The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and then solve and plot the analyte profiles in each compartment over time. 
 
-### Part 2
+## Part 2
 
 
-### Built With
+## Built With
 - HTML/CSS/JS
 - pyodide (which allowed us to run Python in the browser) and the Python packages scipy and numpy
 
-### Feedback/Development
+## Feedback/Development
 The code for this application is open source and can be downloaded and modified as you wish.
 
-### Licensing
+## Licensing
 This application is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for more details.
 
-### Developers
+## Developers
 - Peyton Chen
 
-### Acknowledgments
+## Acknowledgments
 - Caitlin Maikawa, Stanford Bioengineering Ph.D.
 - Joseph Mann, Stanford Materials Science Ph.D.
-
 - Eric Appel, Assistant Professor of Materials Science and Engineering at Stanford University
