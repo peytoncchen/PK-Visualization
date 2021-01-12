@@ -22,6 +22,7 @@ It should also be noted that supporting files for this application including a c
 - [Part 1](#part-1)
 - [Part 2](#part-2)
 - [Methodologies](#methodologies)
+- [Troubleshooting](#troubleshooting)
 
 ## Installation
 This application can be run in multiple ways.
@@ -75,10 +76,10 @@ The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set 
 
 
 **Animal Model Constant:** 
-While modeling mass transfer between systems is typically easiest, often to compare the amount of drug in the body to the efficacious therapeutic dose (or cytotoxic dose) a concentration is required. The Animal Model Constant should be a conversion factor that allows you to convert mass to concentration (typically (blood volume)-1 or (distribution volume)-1 . At present this application only supports one conversion factor and so for systems where one would need to use a different conversion factor for each compartment we recommend only converting to concentration for the compartment of interest or keeping all compartments in terms of mass. You are allowed to put in mathematical expressions or numbers here.
+While modeling mass transfer between systems is typically easiest, often to compare the amount of drug in the body to the efficacious therapeutic dose (or cytotoxic dose) a concentration is required. The Animal Model Constant should be a conversion factor that allows you to convert mass to concentration (typically (blood volume)<sup>-1</sup> or (distribution volume)<sup>-1</sup>. At present this application only supports one conversion factor and so for systems where one would need to use a different conversion factor for each compartment we recommend only converting to concentration for the compartment of interest or keeping all compartments in terms of mass. You are allowed to put in mathematical expressions or numbers here.
 
 
-After inputting the parameters for your system, you can press the **Calculate & Graph** button which will solve the system of ODEs using a 4th order Runge-Kutta ODE solver and generate mass vs. time or concentration vs. time curves for each compartment. The results will be graphed and can also be downloaded as a csv to be plotted by the user. See [methodologies](#methodologies) for more information.
+After inputting the parameters for your system, you can press the **Calculate & Graph** button which will solve the system of ODEs using a 4th order Runge-Kutta ODE solver and generate mass vs. time or concentration vs. time curves for each compartment. The results will be graphed and can also be downloaded as a csv to be plotted by the user. See [methodologies](#methodologies) and [troubleshooting](#troubleshooting) for more information.
 
 
 The download field will also enable at this point. You can input a filename (default is export) and select which compartment(s) you want to export to a CSV file. This file will download at your default download location. An example of what will download can be seen [here.](examples/mydata.csv)
@@ -109,6 +110,12 @@ We have adapted a module from Ricky Reusser (2015) for use in this web applicati
 ### Optimization Algorithm and set-up
 For commented Python code (and a customizable Jupyter Notebook!), visit [here.](https://github.com/peytoncchen/PK-Py/blob/master/calc_k.py)
 Apart from retrieving and parsing the inputs, the core of the algorithm is handed over to pyodide and Python code to deliver the final result. First, the CSV data array is converted into a dictionary that we can manipulate with time as the keys. That dictionary is then matched to a fit dictionary that is normalized. Then, the sum of squared errors (SSE) between the two dictionaries are minimized through scipy's ```optimize.brute``` function, which returns an array one for each compartment in your model.
+
+## Troubleshooting
+
+If you get an error message:
+- Check your inputs were of the correct type and that they were not impossible.
+- Check your k-values - extremely large k-values are known to cause errors as we are using a 4th order Runge-Kutta ODE solver. See [methodologies](#methodologies) for more information.
 
 
 ## Built With
