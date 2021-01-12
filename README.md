@@ -7,8 +7,13 @@ This application is designed to aid researchers who are currently developing and
 
 **Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds.
 
-- [Part 1](#part-1) is the **Pharmacokinetic Data Modeling Calculator and Visualizer** ...and
-- [Part 2](#part-2) is the **k-value Calculator**
+- [Part 1](#part-1) is the **Pharmacokinetic Data Modeling Calculator and Visualizer**
+    - The user inputs rate constants (k values) and initial values for each compartment and the application solves the system of differential equations and displays mass vs. time or concentration vs. time curves for each compartment.
+- [Part 2](#part-2) is the **Rate Constant Calculator**
+    - The user uploads mass vs. time or concentration vs. time data in a csv file and the application solves for best fit rate constants (k-values) for the system of differential equations for the data.
+
+In both parts, the user will be able to define the number of compartments in their model system. Each compartment starts with an initial mass and the application uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>30</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass in compartments 1, 2, and 3 at a given time *t*. 
+
 
 #### Python Files and Jupyter Notebook
 It should also be noted that supporting files for this application including a commented version of the Python code in this web application and a sample Jupyter Notebook for download that mimics the functionality of this application (allowing for greater end-user customizability) is available [here.](https://github.com/peytoncchen/PK-Py)
@@ -60,7 +65,7 @@ The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set 
 - **Number of Compartments:**
     - The number of compartments you have in your model. The compartment model example above has 3 (three) compartments.
 - **Compartment info:**
-    - For each compartment, you will have the option to name it (this will show up in the downloaded CSV), and be prompted to enter intial values and k-values. The k-value input field in row 1 represents the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example), k-value in row 2 represents the k-value from Compartment 2 to 3 (k<sub>2</sub> in the compartment model example) and so on.
+    - For each compartment, you will have the option to name it (this will show up in the downloaded CSV), and be prompted to enter initial values and k-values. The k-value input field in row 1 represents the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example), k-value in row 2 represents the k-value from Compartment 2 to 3 (k<sub>2</sub> in the compartment model example) and so on.
 - **Time range and units:**
     - Specify 0 to what time you would like to generate data from and the associated units. Default is 250 minutes.
 - **Number of steps:**
@@ -76,7 +81,7 @@ The download field will also enable at this point. You can input a filename (def
 <p align="center">
 <img src="examples/part2.png" width="800">
 </p>
-The k-value Calculator allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and input a CSV containing experimental data, then have an optimizing algorithm run to fit the data to a set of k-values. 
+The Rate Constant Calculator allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and input a CSV containing experimental data, then have an optimizing algorithm run to fit the data to a set of k-values. 
 
 ### Inputs:
 - **Choose CSV File to upload:**
@@ -97,7 +102,7 @@ We have adapted a module from Ricky Reusser (2015) for use in this web applicati
 
 ### Optimization Algorithm and set-up
 For commented Python code (and a customizable Jupyter Notebook!), visit [here.](https://github.com/peytoncchen/PK-Py/blob/master/calc_k.py)
-Apart from retrieving and parsing the inputs, the core of the algorithm is handed over to pyodide and Python code to deliver the final result. First, the CSV data array is converted into a dictionary that we can manipulate with time as the keys. That dictionary is then matched to a fit dictionary that is normalized. Then, the sum of squared errors (SSE) between the two dictionaries are minimized through scipy's optimize.brute function, which returns an array one for each compartment in your model.
+Apart from retrieving and parsing the inputs, the core of the algorithm is handed over to pyodide and Python code to deliver the final result. First, the CSV data array is converted into a dictionary that we can manipulate with time as the keys. That dictionary is then matched to a fit dictionary that is normalized. Then, the sum of squared errors (SSE) between the two dictionaries are minimized through scipy's ```optimize.brute``` function, which returns an array one for each compartment in your model.
 
 
 ## Built With
