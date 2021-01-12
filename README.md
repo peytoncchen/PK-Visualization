@@ -8,7 +8,7 @@ This application is designed to aid researchers who are currently developing and
 **Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds.
 
 - [Part 1](#part-1) is the **Pharmacokinetic Data Modeling Calculator and Visualizer**
-    - The user inputs rate constants (k values) and initial values for each compartment and the application solves the system of differential equations and displays mass vs. time or concentration vs. time curves for each compartment.
+    - The user inputs rate constants (k-values) and initial values for each compartment and the application solves the system of differential equations and displays mass vs. time or concentration vs. time curves for each compartment.
 - [Part 2](#part-2) is the **Rate Constant Calculator**
     - The user uploads mass vs. time or concentration vs. time data in a csv file and the application solves for best fit rate constants (k-values) for the system of differential equations for the data.
 
@@ -44,7 +44,7 @@ git clone https://github.com/peytoncchen/PK-Visualization
 <p align="center">
 <img src="examples/cpm.png" width="500">
 </p>
-This example system illustrates the model set-up for both parts of the application. In both parts, the user will be able to define the number of compartments in their model system. Each compartment starts with an initial mass and the application uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>3,0</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass in compartments 1, 2, and 3 at a given time *t*. 
+This example system illustrates the model set-up for both parts of the application. In both parts, the user will be able to define the number of compartments in their model system. Each compartment starts with an initial mass and the application uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>3,0</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass in compartments 1, 2, and 3 at a given time st. 
 
 The differential equations used in the calculator, resemble the following, where each compartment's derivative is modified by the incoming mass and outgoing mass, where *X* represents the mass of a compartment.
 <p align="center">
@@ -56,21 +56,29 @@ The differential equations used in the calculator, resemble the following, where
 <p align="center">
 <img src="examples/part1.png" width="800">
 </p>
-The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and then solve and plot the analyte profiles in each compartment over time. 
+The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model with first-order kinetics and then solve and plot the drug profiles in each compartment over time.
 
 ### Inputs:
 - **Number of Compartments:**
     - The number of compartments you have in your model. The compartment model example above has 3 (three) compartments.
 - **Compartment info:**
-    - For each compartment, you will have the option to name it (this will show up in the downloaded CSV), and be prompted to enter initial values and k-values. The k-value input field in row 1 represents the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example), k-value in row 2 represents the k-value from Compartment 2 to 3 (k<sub>2</sub> in the compartment model example) and so on.
+    - Name (optional): for use in downloadable csv file of generated data
+    - Initial values: Mass at t = 0 in each compartment
+    - k-value: rate constant for each compartment. The k-value input field in row 1 represents the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example), k-value in row 2 represents the k-value from Compartment 2 to 3 (k<sub>2</sub> in the compartment model example) and so on. k-values should have consistent units of time with the time range specified below.
 - **Time range and units:**
-    - Specify 0 to what time you would like to generate data from and the associated units. Default is 250 minutes.
+    - Specify the time range (0 to t) for the generated data and the associated units. Default is 250 minutes.
 - **Number of steps:**
     - Specify the number of steps that you would like the integrator to take. Default is 100,000. **Warning:** too many steps will result in a lot of RAM usage and may take a long time.
 - **Mass or concentration:**
-    - Specify whether you want the y-values generated to be in mass or concentration. If concentration, another row will appear called the "Animal Model Constant" prompting you to fill out a constant and select which compartments you want it to affect. You are allowed to put in mathematical expressions or numbers here.
+    - Specify whether you want the y-values generated to be in mass or concentration. The default output is mass (of the same units as initial values). If you would like to have outputs given as concentrations, another row will appear called the "Animal Model Constant" prompting you to fill out a constant and select which compartments you want it to affect.
 
-Finally, you can press the **Calculate & Graph** button which will calculate and store all the results as well as graph it. By clicking on the legend, you are able to enable and disable plotting of different compartments' datasets. If anything failed, it will display an error. This means that either your inputs were not of the correct type or they were impossible. Note, large k-values are known to cause errors as we are using a 4th order Runge-Kutta ODE solver. See [methodologies](#methodologies) for more information.
+
+**Animal Model Constant:** 
+While modeling mass transfer between systems is typically easiest, often to compare the amount of drug in the body to the efficacious therapeutic dose (or cytotoxic dose) a concentration is required. The Animal Model Constant should be a conversion factor that allows you to convert mass to concentration (typically (blood volume)-1 or (distribution volume)-1 . At present this application only supports one conversion factor and so for systems where one would need to use a different conversion factor for each compartment we recommend only converting to concentration for the compartment of interest or keeping all compartments in terms of mass. You are allowed to put in mathematical expressions or numbers here.
+
+
+After inputting the parameters for your system, you can press the **Calculate & Graph** button which will solve the system of ODEs using a 4th order Runge-Kutta ODE solver and generate mass vs. time or concentration vs. time curves for each compartment. The results will be graphed and can also be downloaded as a csv to be plotted by the user. See [methodologies](#methodologies) for more information.
+
 
 The download field will also enable at this point. You can input a filename (default is export) and select which compartment(s) you want to export to a CSV file. This file will download at your default download location. An example of what will download can be seen [here.](examples/mydata.csv)
 
@@ -117,5 +125,7 @@ This application is licensed under the MIT License. See [LICENSE.txt](LICENSE.tx
 
 ## Acknowledgments
 - Caitlin Maikawa, Stanford Bioengineering Ph.D.
+    - For all the math help and documentation help!
 - Joseph Mann, Stanford Materials Science Ph.D.
+    - The original idea and help with optimization algorithms
 - Eric Appel, Assistant Professor of Materials Science and Engineering at Stanford University
