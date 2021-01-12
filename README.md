@@ -12,8 +12,6 @@ This application is designed to aid researchers who are currently developing and
 - [Part 2](#part-2) is the **Rate Constant Calculator**
     - The user uploads mass vs. time or concentration vs. time data in a csv file and the application solves for best fit rate constants (k-values) for the system of differential equations for the data.
 
-In both parts, the user will be able to define the number of compartments in their model system. Each compartment starts with an initial mass and the application uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>30</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass in compartments 1, 2, and 3 at a given time *t*. 
-
 
 #### Python Files and Jupyter Notebook
 It should also be noted that supporting files for this application including a commented version of the Python code in this web application and a sample Jupyter Notebook for download that mimics the functionality of this application (allowing for greater end-user customizability) is available [here.](https://github.com/peytoncchen/PK-Py)
@@ -46,8 +44,7 @@ git clone https://github.com/peytoncchen/PK-Visualization
 <p align="center">
 <img src="examples/cpm.png" width="500">
 </p>
-This compartment model will be utilized as an example when explaining the features of the application below.
-Each compartment starts with an initial mass and with the exception of the first compartment, have flow in and out of the compartment. The flow is dictated by the rates labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in this example picture. Your model may have more or less compartments.
+This example system illustrates the model set-up for both parts of the application. In both parts, the user will be able to define the number of compartments in their model system. Each compartment starts with an initial mass and the application uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>3,0</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass in compartments 1, 2, and 3 at a given time *t*. 
 
 The differential equations used in the calculator, resemble the following, where each compartment's derivative is modified by the incoming mass and outgoing mass, where *X* represents the mass of a compartment.
 <p align="center">
