@@ -5,7 +5,7 @@ Pharmacokinetics is the study of drug absorption, distribution, metabolism, and 
 ## Introduction
 This application is designed to aid researchers who are currently developing and researching drugs for deployment in animal models or other subjects. This tool consists of two parts that operate entirely independently, although both can be used at the same time.
 
-**Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds.
+**Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds. This application runs best in **Chrome** and **Firefox**.
 
 - [Part 1](#part-1) is the **Pharmacokinetic Data Modeling Calculator and Visualizer**
     - The user inputs rate constants (k-values) and initial values for each compartment and the application solves the system of differential equations and displays mass vs. time or concentration vs. time curves for each compartment.
@@ -113,10 +113,15 @@ Apart from retrieving and parsing the inputs, the core of the algorithm is hande
 
 ## Troubleshooting
 
-If you get an error message:
+**If you get an error message:**
 - Check your inputs were of the correct type and that they were not impossible.
 - Check your k-values - extremely large k-values are known to cause errors as we are using a 4th order Runge-Kutta ODE solver. See [methodologies](#methodologies) for more information.
 
+**If you get outputs that don’t seem to make sense:**
+- Check your units for rate constants, time range, and initial mass values to make sure units are consistent.
+- Check if you have correctly selected mass or concentration as an output and inputted a relevant Animal Model Constant 
+- Check you have correctly selected mass or concentration as an output and inputted a relevant Animal Model Constant
+If you’re using the Rate Constant Calculator, check if your csv file follows the example format.
 
 ## Built With
 - HTML/CSS/JS
