@@ -26,19 +26,209 @@
         describe the absorption, distribution and elimination. Pharmacokinetic models can be extremely valuable to drug research and 
         development, shedding light to how a drug candidate interacts with the target organism.
     </p>
-    <p style="padding-bottom: 10px;">
+    <p>
         This application is designed to aid researchers who are currently developing and researching drugs for deployment in animal models 
         or other subjects. This tool consists of two parts that operate entirely independently, although both can be used at the same time.
+        <br>
+        <br>
+        For the full documentation, please visit the Github repository where a README has been uploaded to go into more detail 
+        <a href="https://github.com/peytoncchen/PK-Visualization/blob/main/README.md">here.</a>
+        <br>
+        <br>
+        It should also be noted that supporting files for this application including a commented version of the Python code in this web application 
+        and a sample Jupyter Notebook for download that mimics the functionality of this application (allowing for greater end-user customizability) 
+        is available <a href="https://github.com/peytoncchen/PK-Py">here.</a>
+        <br>
+        <br>
+        <b>Note:</b> you will notice some stutters as packages load in. This is completely normal. Additionally, the 
+        <b>Calculate k-values</b> button in part 2 is grayed out until said packages load - this can take up to 30 seconds. 
+        This application runs best in <b>Chrome</b> and <b>Firefox.</b>
     </p>
-    <h3 style="text-align: left;">Instructions</h3>
+    <h2 style="text-align: left;">Overview</h3>
+    <ul>
+        <li><b>Part 1</b> is the Pharmacokinetic Data Modeling Calculator and Visualizer
+            <ul>
+                <li>The user inputs rate constants (k values) and initial values for each compartment and the application solves 
+                    the system of differential equations and displays mass vs. time or concentration vs. time curves for each 
+                    compartment.
+                </li>
+            </ul>
+        </li>
+        <li>
+            <b>Part 2</b> is the Rate Constant Calculator
+            <ul>
+                <li>
+                    The user uploads mass vs. time or concentration vs. time data in a CSV file and the application solves for 
+                    best fit rate constants (k-values) for the system of differential equations for the data.
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <h2 style="text-align: left;">Compartment Model and Differential Equations</h4>
+    <p align="center">
+        <img src="examples/cpm.png" width="600">
+    </p>
+    <p>
+        This example system illustrates the model set-up for both parts of the application. In both parts, the user will be able to 
+        define the number of compartments in their model system. Each compartment starts with an initial mass and the application 
+        uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an 
+        example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled 
+        as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by 
+        X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>3,0</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass 
+        in compartments 1, 2, and 3 at a given time t. 
+    </p>
+    <p>
+        The differential equations used in the calculator, resemble the following, where each compartment's derivative is modified 
+        by the incoming mass and outgoing mass, where *X* represents the mass of a compartment.
+    </p>
+    <p align="center">
+        <img src="examples/diffeq.png" width="200">
+    </p>
+    <h2 style="text-align: left;">Instructions</h3>
+    <h3 style="text-align: left;">Part 1: Pharmacokinetic Data Modeling Calculator and Visualizer</h3>
+    <p>
+        The Pharmacokinetic Data Modeling Calculator and Visualizer allows users to set up a system of ordinary differential equations 
+        (ODEs) describing a simple compartment model with first-order kinetics and then solve and plot the drug profiles in each 
+        compartment over time.   
+    </p>
+    <h4 style="text-align: left;">Inputs:</h4>
+    <ul>
+        <li>
+            Number of Compartments:
+            <ul>
+                <li>The number of compartments that you have in your model.</li>
+            </ul>
+        </li>
+        <li>
+            Compartment Info:
+            <ul>
+                <li>
+                    Name (optional): for use in downloadable CSV file of generated data.
+                </li>
+                <li>
+                    Initial values: Mass at t = 0 in each compartment.
+                </li>
+                <li>
+                    k-value: rate constant for each compartment. The k-value input field in row 1 represents 
+                    the k-value from Compartment 1 to 2 (k<sub>1</sub> in the compartment model example) and so on. 
+                    k-values should have consistent units of time with time range specified (below). k-values should 
+                    have units of 1/t.
+                </li>
+            </ul>
+        </li>
+        <li>
+            Time range and units:
+            <ul>
+                <li>
+                    Specify the time range (0 to t) for the generated data and the associated units. 
+                    Default is 250 minutes.
+                </li>
+            </ul>
+        </li>
+        <li>
+            Number of steps:
+            <ul>
+                <li>
+                    Specify the number of steps that you would like the integrator to take. 
+                    Default is 100,000. Warning: too many steps will result in a lot of RAM usage 
+                    and may take a long time.
+                </li>
+            </ul>
+        </li>
+        <li>
+            Mass or concentration:
+            <ul>
+                Specify whether you want the y-values generated to be in mass or concentration. 
+                The default output is mass (of the same units as initial values). If you would like 
+                to have outputs given as concentrations, another row will appear called the "Animal Model Constant" 
+                prompting you to fill out a constant and select which compartments you want it to affect. 
+            </ul>
+        </li>
+    </ul>
+    <p>
+        <b>Animal Model Constant:</b>
+        <br>
+        While modeling mass transfer between systems is typically easiest, 
+        often to compare the amount of drug in the body to the efficacious therapeutic dose (or cytotoxic dose) 
+        a concentration is required. The Animal Model Constant is a conversion factor that allows you to convert 
+        mass to concentration (typically (blood volume)<sup>-1</sup> or (distribution volume)<sup>-1</sup>. This will vary between 
+        animal models and so users will have to determine the conversion appropriate for their system. 
+        At present this application only supports one conversion factor and so for systems where one would need 
+        to use a different conversion factor for each compartment we recommend only converting to concentration 
+        for the compartment of interest or keeping all compartments in terms of mass. You are allowed to put in 
+        mathematical expressions or numbers here.
+    </p>
     <p style="padding-bottom: 10px;">
-        Fill in revised instructions.
+        After inputting the parameters for your system, you can press the Calculate & Graph button which will solve the 
+        system of ODEs using a 4th order Runge-Kutta ODE solver and generate mass vs. time or concentration vs. time curves 
+        for each compartment. The results will be graphed and can also be downloaded as a CSV to be plotted by the user. 
     </p>
+    <h3 style="text-align: left;">Part 2: Pharmacokinetic Data Modeling Calculator and Visualizer</h3>
+    <p>
+        The Rate Constant Calculator allows users to set up a system of ordinary differential equations (ODEs) describing 
+        a simple compartment model and input a CSV containing experimental data, then have an optimizing algorithm run to 
+        fit the data to a set of k-values. 
+    </p>
+    <h4 style="text-align: left;">Inputs:</h4>
+    <ul>
+        <li>
+            Choose CSV file to upload:
+            <ul>
+                <li>
+                    Clicking this field will bring up an input dialog for you to upload a CSV. Please follow the format of 
+                    the CSV <a href="https://github.com/peytoncchen/PK-Visualization/blob/main/examples/myinput.csv">here.</a> 
+                    Essentially, you will want the first row to be headers, your first column to be time, and your second column 
+                    to be the dependent variable. Any additional columns are not supported currently and will produce errors. 
+                    Please ensure that you delete any data that you do not want to consider any entry (time, value) that 
+                    is missing either value will just result in the entire row being ignored.
+                </li>
+            </ul>
+        </li>
+        <li>
+            Number of Compartments, Mass or Concentration, Animal Model Constant:
+            <ul>
+                <li>
+                    Same as part 1.
+                </li>
+            </ul>
+        </li>
+        <li>
+            CSV data represents:
+            <ul>
+                <li>
+                    Please input what compartment your CSV data represents. In the example case, our data represented Compartment 3.
+                </li>
+            </ul>
+        </li>
+        <li>
+            Compartment Info:
+            <ul>
+                <li>
+                    Please indicate the bounds for k-values that you are unsure of and the initial value that the compartment starts off at. 
+                    If you do know the value, please tick the "Constrain" box and fill in what the k-value is for that compartment. 
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <p>
+        Finally, you can press the "Calculate k-values" button which will parse your inputs and return final k-value results for each 
+        compartment. For specifics as to how this is done check-out the Python files which the code from this app is based on and the
+        methodologies section in the full <a href="https://github.com/peytoncchen/PK-Visualization/blob/main/README.md">documentation</a> 
+        for this web application. There is also an example Jupyter Notebook that can be customized to your 
+        specific situation. The link to that repository is <a href="https://github.com/peytoncchen/PK-Py">here.</a> Enjoy and best of luck
+        with your research!
+    </p>
+    <h2 style="text-align: left;">Troubleshooting?</h2>
+    <p style="padding-bottom: 10px;">
+        Visit the full <a href="https://github.com/peytoncchen/PK-Visualization/blob/main/README.md">documentation</a> page for tips 
+        on troubleshooting.
+    </p>
+
     <hr class="solid">
     <h2 style="padding-top: 10px;">Pharmacokinetic Data Modeling Calculator and Visualizer</h2>
 
-    <div style="display: flex">
-        <div>
+    <div style="display: flex;">
+        <div style="margin:auto;">
             <form id="inputform">
                 <table cellspacing="10" cellpadding="10" id="input_table">
                     <tr>
@@ -107,7 +297,7 @@
                 </table>
             </form>
         </div>
-        <div style="padding-left: 5px;">
+        <div style="margin:auto;">
             <canvas style="width: 600px; height: 375px;"id="my_graph"></canvas>
             <div style="align-items: center;">
                 <p id="output" style="padding-left: 15px;"></p>
@@ -117,9 +307,9 @@
     <div>
         <hr class="solid">
         <h2 style="padding-top: 10px;">Rate Constant Calculator</h2>
-        <div style="margin: auto;">
+        <div style="display:flex; align-items:center; justify-content: center;">
             <form id="inputform2">
-                <table style="float: left;" cellspacing="10" cellpadding="10" id="input_table2">
+                <table style="float:left;" cellspacing="10" cellpadding="10" id="input_table2">
                     <tr>
                         <td>
                             <label for="file_csv">Choose CSV file to upload</label>
@@ -167,11 +357,11 @@
                         </td>
                     </tr>
                 </table>
-                <table style="float: left" cellspacing="10" cellpadding="10" id="kval_table2">
+                <table style="float:left;" cellspacing="10" cellpadding="10" id="kval_table2">
                 </table>
             </form>
-            <p id="finalresult" style="padding-left: 20px;"></p>
         </div>
+        <p id="finalresult" style="padding-left: 20px;"></p>
     </div>
 
 <script>
@@ -1083,11 +1273,13 @@
                 import math
                 sys.version
             `));
+            /*
             pyodide.loadPackage(['numpy', 'scipy']).then(() => {
                 pyodide.runPython('import numpy as np');
                 pyodide.runPython('from scipy.optimize import brute');
                 document.getElementById("calck").disabled = false; // Button is disabled until everything has loaded.
             });
+            */
             
         });
     };
