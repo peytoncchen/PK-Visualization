@@ -42,12 +42,13 @@ git clone https://github.com/peytoncchen/PK-Visualization
 - Click on ```index.html``` and the application will run in your default browser.
 
 ## Compartment Model and Differential Equations Example
+### Compartment Model
 <p align="center">
 <img src="examples/cpm.png" width="600">
 </p>
 This example system illustrates the model set-up for both parts of the application. In both parts, the user will be able to define the number of compartments in their model system. Each compartment starts with an initial mass and the application uses first-order kinetics to model flow in and out of each compartment. We have chosen to use a 3 compartment model as an example for the inputs and corresponding system of differential equations. The flow is dictated by the rate constants labeled as k<sub>1</sub>, k<sub>2</sub>, and k<sub>3</sub> in our example picture. Initial mass in each compartment is given by X<sub>1,0</sub>, X<sub>2,0</sub>, X<sub>3,0</sub>. X<sub>1</sub>, X<sub>2</sub>, and X<sub>3</sub> correspond to the mass in compartments 1, 2, and 3 at a given time t. 
-<br>
 
+### Differential equations
 The differential equations used in the calculator, resemble the following, where each compartment's derivative is modified by the incoming mass and outgoing mass, where *X* represents the mass of a compartment.
 <p align="center">
 <img src="examples/diffeq.png" width="200">
