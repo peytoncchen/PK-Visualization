@@ -5,7 +5,7 @@ Pharmacokinetics is the study of drug absorption, distribution, metabolism, and 
 ## Introduction
 This application is designed to aid researchers who are currently developing and researching drugs for deployment in animal models or other subjects. This tool consists of two parts that operate entirely independently, although both can be used at the same time. Enjoy and best of luck with your research!
 
-**Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds. This application runs best in **Chrome** and **Firefox**.
+**Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds. This application runs **ONLY** in **Chrome** and **Firefox**.
 
 - [Part 1](#part-1) is the **Pharmacokinetic Data Modeling Calculator and Visualizer**
     - The user inputs rate constants (k-values) and initial values for each compartment and the application solves the system of differential equations and displays mass vs. time or concentration vs. time curves for each compartment.
