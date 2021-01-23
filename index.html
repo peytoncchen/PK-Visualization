@@ -543,6 +543,7 @@
             var input_field = document.createElement("input");
             input_field.setAttribute("id", "a_const");
             input_field.setAttribute("style", "width: 70px");
+            input_field.setAttribute("onchange", "reset_output()");
             cell_input.appendChild(input_field);
 
             var div = document.createElement("div");
