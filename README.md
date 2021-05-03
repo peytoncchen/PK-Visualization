@@ -31,7 +31,7 @@ This application can be run in multiple ways.
 - Navigate over to the [Github Page](https://peytoncchen.github.io/PK-Visualization/) for this repository where the latest version is deployed.
 
 ### Supramolecular Biomaterials
-- This calculator was developed under the mentorship and guidance of members in the Stanford Appel Lab. There will soon be a version of this calculator deployed on the website.
+- This calculator was developed under the mentorship and guidance of members in the Stanford Appel Lab. There is a prettier version of what I have on my Github Page on the my lab's website [here]().
 
 ### Downloading the repository
 - Clone the project:
