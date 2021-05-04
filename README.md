@@ -92,7 +92,7 @@ The download field will also enable at this point. You can input a filename (def
 The Rate Constant Calculator allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and input a CSV containing experimental data, then have an optimizing algorithm run to fit the data to a set of k-values. 
 
 ### Inputs:
-- **Press the "Load-in packages" button!** (upper right corner of the Rate Constant Calculator)
+- **Press the "Load-in packages" button!** (to the right of the Rate Constant Calculator title)
 - **Choose CSV File to upload:**
     - Clicking this field will bring up an input dialog for you to upload a CSV. Please follow the format of the CSV [here](examples/myinput.csv). Essentially, you will want the first row to be headers, your first column to be time, and your second column to be the dependent variable. Any additional columns are not supported currently and will produce errors. Please ensure that you delete any data that you do not want to consider any entry (time, value) that is missing either value will just result in the entire row being ignored. Please note that you **must** utilize normalized data.
 - **Number of Compartments, Mass or Concentration, Animal Model Constant**
