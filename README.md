@@ -5,7 +5,7 @@ Pharmacokinetics is the study of drug absorption, distribution, metabolism, and 
 ## Introduction
 This application is designed to aid researchers who are currently developing and researching drugs for deployment in animal models or other subjects. This tool consists of two parts that operate entirely independently, although both can be used at the same time. Enjoy and best of luck with your research!
 
-**Note:** you will notice some stutters as packages load in. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds. This application runs **ONLY** in **Chrome** and **Firefox**.
+**Note:** you will notice some stutters as packages load in as soon as you press the "Load-in Packages" button in part 2. This is completely normal. Additionally, the **Calculate k-values** button in part 2 is grayed out until said packages load - this can take up to 30 seconds. The Rate Constant Calculator runs **ONLY** in **Chrome** and **Firefox**.
 
 - [Part 1](#part-1) is the **Pharmacokinetic Data Modeling Calculator and Visualizer**
     - The user inputs rate constants (k-values) and initial values for each compartment and the application solves the system of differential equations and displays mass vs. time or concentration vs. time curves for each compartment.
@@ -31,7 +31,7 @@ This application can be run in multiple ways.
 - Navigate over to the [Github Page](https://peytoncchen.github.io/PK-Visualization/) for this repository where the latest version is deployed.
 
 ### Supramolecular Biomaterials
-- This calculator was developed under the mentorship and guidance of members in the Stanford Appel Lab. There is a prettier version of what I have on my Github Page on the my lab's website [here]().
+- This calculator was developed under the mentorship and guidance of members in the Stanford Appel Lab. There is a prettier version of what I have on my Github Page on my lab's website [here]().
 
 ### Downloading the repository
 - Clone the project:
@@ -39,7 +39,7 @@ This application can be run in multiple ways.
 git clone https://github.com/peytoncchen/PK-Visualization
 ```
 - Or: download the source code into a zip file from the green button labelled 'Code'
-- Click on ```index.html``` and the application will run in your default browser.
+- Click on ```index.html``` and the application will run in your default browser. You may need to switch to Chrome or Firefox, especially if you would like to run part 2 (Rate Constant Calculator). 
 
 ## Compartment Model and Differential Equations Example
 ### Compartment Model
@@ -92,6 +92,7 @@ The download field will also enable at this point. You can input a filename (def
 The Rate Constant Calculator allows users to set up a system of ordinary differential equations (ODEs) describing a simple compartment model and input a CSV containing experimental data, then have an optimizing algorithm run to fit the data to a set of k-values. 
 
 ### Inputs:
+- **Press the "Load-in packages" button!**
 - **Choose CSV File to upload:**
     - Clicking this field will bring up an input dialog for you to upload a CSV. Please follow the format of the CSV [here](examples/myinput.csv). Essentially, you will want the first row to be headers, your first column to be time, and your second column to be the dependent variable. Any additional columns are not supported currently and will produce errors. Please ensure that you delete any data that you do not want to consider any entry (time, value) that is missing either value will just result in the entire row being ignored. Please note that you **must** utilize normalized data.
 - **Number of Compartments, Mass or Concentration, Animal Model Constant**
