@@ -94,8 +94,11 @@
 <div>
     <hr class="solid">
     <div style="display: flex; justify-content: center; position: relative;">
-        <h2 style="padding-top: 10px;">Rate Constant Calculator</h2>
-        <button style="position: absolute; right: 0;" type="button" id="loadpkg" onclick="load_pkgs()">Load-in Packages</button>
+        <h2 style="padding-top: 10px; padding-right: 10px;">Rate Constant Calculator</h2>
+        <div style="position: relative; right: 0; padding-top: 10px;">
+            <label for="loadkpg" id="labelloadpkg" style="padding-right: 5px;">Activate it! &#x2192</label>
+            <button type="button" id="loadpkg" onclick="load_pkgs()">Load-in Packages</button>
+        </div>
     </div>
     <div style="display:flex; align-items:center; justify-content: center;">
         <form id="inputform2">
@@ -754,7 +757,7 @@
     // Function that attempts to load packages
     function load_pkgs() {
         languagePluginLoader.then( function () {
-            document.getElementById("loadpkg").innerHTML = "Loading... can take ~1 min";
+            document.getElementById("labelloadpkg").innerHTML = "Loading... can take ~1 min";
             console.log(pyodide.runPython(`
                 import sys
                 import math
